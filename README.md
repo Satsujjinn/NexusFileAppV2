@@ -26,15 +26,15 @@ NexusFileApp provides a Files-like interface to organize, import, preview, and s
 
 1. Clone the repository:
 
-   ```bash
+   
    git clone https://github.com/yourusername/NexusFileApp.git
    cd NexusFileApp
-   ```
+
 2. Open the project in Xcode:
 
-   ```bash
+   
    open NexusFileApp.xcodeproj
-   ```
+   
 3. Select your Apple Developer team under Signing & Capabilities.
 4. Add your app icon in **Assets.xcassets > AppIcon**.
 5. Build and run on an iOS 15+ simulator or device.
@@ -45,17 +45,3 @@ NexusFileApp provides a Files-like interface to organize, import, preview, and s
 * In a folder view, use the “...” menu to create a folder, import files, or sort items.
 * Long-press or swipe an item for rename, duplicate, or delete options.
 * Tap the share icon to share documents via Mail, WhatsApp, or other apps.
-
-## Git Commands
-
-To commit and push changes:
-
-```bash
-git add .
-git commit -m "chore: update README to English"
-git push origin main
-```
-
-## Portfolio
-
-This project is part of my professional portfolio. View the repository at [https://github.com/yourusername/NexusFileApp](https://github.com/yourusername/NexusFileApp).
