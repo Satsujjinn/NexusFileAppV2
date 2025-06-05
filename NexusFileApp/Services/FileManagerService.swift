@@ -76,11 +76,21 @@ class FileManagerService: ObservableObject {
     }
 
     func importFile(from url: URL) {
+        let didStart = url.startAccessingSecurityScopedResource()
+        defer { if didStart { url.stopAccessingSecurityScopedResource() } }
+
         let dest = currentURL.appendingPathComponent(url.lastPathComponent)
-        try? (fileManager.fileExists(atPath: dest.path)
-            ? fileManager.removeItem(at: dest)
-            : ())
-        try? fileManager.copyItem(at: url, to: dest)
+
+        if fileManager.fileExists(atPath: dest.path) {
+            try? fileManager.removeItem(at: dest)
+        }
+
+        do {
+            try fileManager.copyItem(at: url, to: dest)
+        } catch {
+            print("Import failed: \(error)")
+        }
+
         loadItems()
     }
 
