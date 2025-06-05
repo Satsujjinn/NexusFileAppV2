@@ -8,16 +8,22 @@ struct CategoryCard: View {
             Image(systemName: "folder.fill")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 40)
+                .frame(height: 50)
                 .foregroundColor(.nexusGreen)
             Text(name)
                 .font(.headline)
-                .foregroundColor(.nexusGreen)
+                .foregroundColor(.primary)
         }
         .padding()
         .frame(maxWidth: .infinity, minHeight: 120)
-        .background(Color.white)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.white, Color.nexusGreen.opacity(0.15)]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
         .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
     }
 }
