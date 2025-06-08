@@ -1,0 +1,54 @@
+import Foundation
+import CoreXLSX
+import PDFKit
+import UIKit
+
+enum ExcelPDFExportError: Error {
+    case unsupportedFormat
+    case noWorksheet
+    case pdfCreationFailed
+}
+
+struct ExcelPDFExporter {
+    static func export(at url: URL) throws -> URL {
+        guard url.pathExtension.lowercased().hasSuffix("xlsx") else {
+            throw ExcelPDFExportError.unsupportedFormat
+        }
+
+        guard let file = XLSXFile(filepath: url.path) else {
+            throw ExcelPDFExportError.unsupportedFormat
+        }
+
+        guard let wsPath = try file.parseWorksheetPaths().first else {
+            throw ExcelPDFExportError.noWorksheet
+        }
+        let worksheet = try file.parseWorksheet(at: wsPath)
+        let rows = worksheet.data?.rows ?? []
+
+        let text = rows.map { row in
+            row.cells.map { $0.stringValue ?? "" }.joined(separator: "\t")
+        }.joined(separator: "\n")
+
+        let outputURL = url.deletingPathExtension().appendingPathExtension("pdf")
+
+        let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792)
+        let format = UIGraphicsPDFRendererFormat()
+        let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
+        let data = renderer.pdfData { ctx in
+            ctx.beginPage()
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 12)
+            ]
+            text.draw(in: CGRect(x: 20, y: 20,
+                                 width: pageRect.width - 40,
+                                 height: pageRect.height - 40),
+                      withAttributes: attrs)
+        }
+
+        guard let doc = PDFDocument(data: data) else {
+            throw ExcelPDFExportError.pdfCreationFailed
+        }
+        doc.write(to: outputURL)
+        return outputURL
+    }
+}

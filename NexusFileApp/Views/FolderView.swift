@@ -134,7 +134,9 @@ struct FolderView: View {
                 Button("Share") { shareURL = item.id }
                 if item.id.pathExtension.lowercased().contains("xls") {
                     Button("Send as PDF") {
-                        // no-op stub
+                        if let url = service.exportAsPDF(item: item) {
+                            shareURL = url
+                        }
                     }
                 }
                 Button("Duplicate") { service.duplicate(item: item) }

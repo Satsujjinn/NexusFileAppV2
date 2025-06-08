@@ -141,4 +141,8 @@ class FileManagerService: ObservableObject {
         try? fileManager.copyItem(at: originalURL, to: destURL)
         loadItems()
     }
+
+    func exportAsPDF(item: DirectoryItem) -> URL? {
+        try? ExcelPDFExporter.export(at: item.id)
+    }
 }
