@@ -16,6 +16,7 @@ struct FolderView: View {
     @State private var showingImporter = false
     @State private var shareURL: URL?
     @State private var renameTarget: DirectoryItem?
+    @State private var previewURL: URL?
     @State private var sortMode: SortMode = .name
     @State private var searchText = ""
 
@@ -91,6 +92,9 @@ struct FolderView: View {
                 service.rename(item: item, to: newName)
             }
         }
+        .sheet(item: $previewURL) { url in
+            FilePreviewView(url: url)
+        }
         .onAppear { service.loadItems() }
     }
 
@@ -117,8 +121,12 @@ struct FolderView: View {
                     Image(systemName: "square.and.arrow.up")
                 }
             }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                previewURL = item.id
+            }
             .contextMenu {
-                Button("Open") { shareURL = item.id }
+                Button("Open") { previewURL = item.id }
                 Button("Share") { shareURL = item.id }
                 if item.id.pathExtension.lowercased().contains("xls") {
                     Button("Send as PDF") {
