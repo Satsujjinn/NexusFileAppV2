@@ -24,12 +24,12 @@ class FileManagerService: ObservableObject {
         "Crop Info"
     ]
 
-    init(startingAt url: URL? = nil) {
-        let docs = fileManager
+    init(startingAt url: URL? = nil,
+         documentsURL: URL = FileManager.default
             .urls(for: .documentDirectory, in: .userDomainMask)
-            .first!
-        self.documentsURL = docs
-        self.currentURL = url ?? docs
+            .first!) {
+        self.documentsURL = documentsURL
+        self.currentURL = url ?? documentsURL
 
         ensureDefaultCategories()
         loadItems()
@@ -92,7 +92,7 @@ class FileManagerService: ObservableObject {
     }
 
     func navigate(to item: DirectoryItem) -> FileManagerService {
-        FileManagerService(startingAt: item.id)
+        FileManagerService(startingAt: item.id, documentsURL: documentsURL)
     }
 
     func createFolder(named name: String) {
