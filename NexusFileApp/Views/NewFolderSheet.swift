@@ -16,7 +16,7 @@ struct NewFolderSheet: View {
     @State private var name = ""
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text(title)) {
                     TextField(placeholder, text: $name)

@@ -21,7 +21,7 @@ struct RenameSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("Rename")) {
                     TextField("New name", text: $newName)
