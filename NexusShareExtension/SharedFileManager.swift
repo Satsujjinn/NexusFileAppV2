@@ -8,7 +8,10 @@
 import Foundation
 
 struct SharedFileManager {
-    static let appGroupID = "group.com.yourcompany.NexusFileApp"
+    /// The identifier for the shared app group used between the main app and
+    /// the share extension. This must match the value in both the app and
+    /// extension entitlements.
+    static let appGroupID = "group.com.leon.NexusFileApp"
 
     static var containerURL: URL {
         FileManager.default
