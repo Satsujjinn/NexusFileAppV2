@@ -19,9 +19,9 @@ class FileManagerService: ObservableObject {
         "Spray Programs",
         "MRL",
         "Labels",
-        "Calibrations",
+        "Calibration Sheets",
         "Recommendations",
-        "Crop Information"
+        "Crop Info"
     ]
 
     init(startingAt url: URL? = nil) {
@@ -36,6 +36,32 @@ class FileManagerService: ObservableObject {
     }
 
     private func ensureDefaultCategories() {
+        let migrations = [
+            (old: "Calibrations", new: "Calibration Sheets"),
+            (old: "Crop Information", new: "Crop Info")
+        ]
+
+        for (old, new) in migrations {
+            let oldURL = documentsURL.appendingPathComponent(old, isDirectory: true)
+            let newURL = documentsURL.appendingPathComponent(new, isDirectory: true)
+            var isDir: ObjCBool = false
+            if fileManager.fileExists(atPath: oldURL.path, isDirectory: &isDir) {
+                if !fileManager.fileExists(atPath: newURL.path, isDirectory: &isDir) {
+                    try? fileManager.moveItem(at: oldURL, to: newURL)
+                } else {
+                    if let items = try? fileManager.contentsOfDirectory(at: oldURL, includingPropertiesForKeys: nil) {
+                        for item in items {
+                            let dest = newURL.appendingPathComponent(item.lastPathComponent)
+                            if !fileManager.fileExists(atPath: dest.path) {
+                                try? fileManager.moveItem(at: item, to: dest)
+                            }
+                        }
+                    }
+                    try? fileManager.removeItem(at: oldURL)
+                }
+            }
+        }
+
         for name in defaultCategories {
             let folderURL = documentsURL.appendingPathComponent(name, isDirectory: true)
             var isDir: ObjCBool = false
