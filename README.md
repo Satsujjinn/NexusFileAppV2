@@ -45,3 +45,7 @@ NexusFileApp provides a Files-like interface to organize, import, preview, and s
 * In a folder view, use the “...” menu to create a folder, import files, or sort items.
 * Long-press or swipe an item for rename, duplicate, or delete options.
 * Tap the share icon to share documents via Mail, WhatsApp, or other apps.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
