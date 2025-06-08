@@ -13,6 +13,8 @@ struct ShareContentView: View {
 
     @State private var chosenFolder = ""
     @State private var fileName = ""
+    @State private var showingNewFolder = false
+    @State private var refreshID = UUID()
 
     var body: some View {
         NavigationStack {
@@ -20,10 +22,11 @@ struct ShareContentView: View {
                 chosenFolder = folder
                 fileName = sharedURL.lastPathComponent
             }
+            .id(refreshID)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Maak Submap") {
-                        // TODO: present a sheet to create a new subfolder here
+                        showingNewFolder = true
                     }
                     .disabled(chosenFolder.isEmpty)
                 }
@@ -47,6 +50,42 @@ struct ShareContentView: View {
                 }
                 .navigationTitle("Baskanselleer")
             }
+        }
+        .sheet(isPresented: $showingNewFolder) {
+            NewSubfolderSheet(title: "Nuwe Submap", placeholder: "Naam") { name in
+                try? SharedFileManager.createSubfolder(named: name, in: chosenFolder)
+                refreshID = UUID()
+            }
+        }
+    }
+}
+
+private struct NewSubfolderSheet: View {
+    let title: String
+    let placeholder: String
+    var onCreate: (String) -> Void
+
+    @Environment(\.presentationMode) private var presentationMode
+    @State private var name = ""
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text(title)) {
+                    TextField(placeholder, text: $name)
+                }
+            }
+            .navigationTitle(title)
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                },
+                trailing: Button("Create") {
+                    onCreate(name.trimmingCharacters(in: .whitespaces))
+                    presentationMode.wrappedValue.dismiss()
+                }
+                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+            )
         }
     }
 }

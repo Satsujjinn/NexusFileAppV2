@@ -33,6 +33,16 @@ struct SharedFileManager {
         try FileManager.default.copyItem(at: url, to: destURL)
     }
 
+    /// Create a subfolder inside an optional parent path
+    static func createSubfolder(named name: String, in parent: String = "") throws {
+        var url = documentsURL
+        if !parent.isEmpty {
+            url.appendPathComponent(parent, isDirectory: true)
+        }
+        url.appendPathComponent(name, isDirectory: true)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+    }
+
     /// List all subfolders at an optional relative path
     static func listFolders(at subpath: String = "") -> [String] {
         let url = subpath.isEmpty
