@@ -18,7 +18,7 @@ struct HomeView: View {
     ]
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(fm.items.filter(\.isDirectory)) { item in
@@ -66,6 +66,5 @@ struct HomeView: View {
             }
             .onAppear { fm.loadItems() }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
