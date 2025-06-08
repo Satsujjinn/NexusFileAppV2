@@ -30,6 +30,7 @@ struct HomeView: View {
                         ) {
                             CategoryCard(name: item.name)
                         }
+                        .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
                         .contextMenu {
                             Button("Rename") { renameTarget = item }
                             Button("Delete", role: .destructive) {
@@ -57,6 +58,7 @@ struct HomeView: View {
                     placeholder: "Name"
                 ) { name in
                     fm.createFolder(named: name)
+                    Haptics.success()
                 }
             }
             .sheet(item: $renameTarget) { item in

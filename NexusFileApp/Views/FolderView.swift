@@ -73,8 +73,9 @@ struct FolderView: View {
             }
         }
         .sheet(isPresented: $showingNewFolder) {
-            NewFolderSheet(title: "New Folder", placeholder: "Name") {
-                service.createFolder(named: $0)
+            NewFolderSheet(title: "New Folder", placeholder: "Name") { name in
+                service.createFolder(named: name)
+                Haptics.success()
             }
         }
         .fileImporter(isPresented: $showingImporter,
@@ -82,6 +83,7 @@ struct FolderView: View {
                       allowsMultipleSelection: true) { result in
             if case .success(let urls) = result {
                 urls.forEach { service.importFile(from: $0) }
+                Haptics.success()
             }
         }
         .sheet(item: $shareURL) { url in
@@ -107,6 +109,7 @@ struct FolderView: View {
             ) {
                 Label(item.name, systemImage: "folder.fill")
             }
+            .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
             .contextMenu {
                 Button("Rename") { renameTarget = item }
                 Button("Delete", role: .destructive) {
@@ -123,6 +126,7 @@ struct FolderView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture {
+                Haptics.selection()
                 previewURL = item.id
             }
             .contextMenu {
