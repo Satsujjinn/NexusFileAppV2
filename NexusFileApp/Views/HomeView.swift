@@ -8,9 +8,13 @@
 import SwiftUI
 
 struct HomeView: View {
+    @Binding var openFileURL: URL?
     @StateObject private var fm = FileManagerService()
     @State private var showingNew = false
     @State private var renameTarget: DirectoryItem?
+    @State private var pendingFile: URL?
+    @State private var navigateService: FileManagerService?
+    @State private var showSavedAlert = false
 
     let columns = [
         GridItem(.flexible()),
@@ -73,6 +77,46 @@ struct HomeView: View {
                 }
             }
             .onAppear { fm.loadItems() }
+            .alert("Successfully saved", isPresented: $showSavedAlert) {
+                Button("Open") {
+                    if let file = pendingFile {
+                        let folder = file.deletingLastPathComponent()
+                        navigateService = FileManagerService(startingAt: folder,
+                                                             documentsURL: SharedFileManager.shared.documentsURL)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+            .background(
+                NavigationLink(
+                    destination: destinationView(),
+                    isActive: Binding(
+                        get: { navigateService != nil },
+                        set: { if !$0 { navigateService = nil } }
+                    )
+                ) { EmptyView() }
+                .hidden()
+            )
+            .onChange(of: openFileURL) { url in
+                if let url {
+                    pendingFile = url
+                    showSavedAlert = true
+                    openFileURL = nil
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func destinationView() -> some View {
+        if let service = navigateService {
+            FolderView(
+                service: service,
+                title: service.currentURL.lastPathComponent,
+                openFileURL: pendingFile
+            )
+        } else {
+            EmptyView()
         }
     }
 }

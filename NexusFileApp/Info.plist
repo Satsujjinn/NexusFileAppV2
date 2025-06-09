@@ -24,8 +24,19 @@
 				<string>org.openxmlformats.spreadsheetml.sheet</string>
 			</array>
 		</dict>
-	</array>
-	<key>UIFileSharingEnabled</key>
-	<false/>
+</array>
+        <key>UIFileSharingEnabled</key>
+        <false/>
+        <key>CFBundleURLTypes</key>
+        <array>
+                <dict>
+                        <key>CFBundleURLName</key>
+                        <string>com.leon.NexusFileApp</string>
+                        <key>CFBundleURLSchemes</key>
+                        <array>
+                                <string>nexusfileapp</string>
+                        </array>
+                </dict>
+        </array>
 </dict>
 </plist>

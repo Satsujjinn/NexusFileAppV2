@@ -52,11 +52,23 @@ class ShareViewController: UIViewController {
     private func presentShareUI() {
         guard let fileURL = sharedURL else { return }
         // Wrap your SwiftUI ShareContentView
-        let content = ShareContentView(sharedURL: fileURL) { folder, name in
-            try? SharedFileManager.save(file: fileURL, to: folder, named: name)
-            self.extensionContext?
-                .completeRequest(returningItems: [], completionHandler: nil)
-        }
+        let content = ShareContentView(
+            sharedURL: fileURL,
+            onSave: { folder, name in
+                try? SharedFileManager.save(file: fileURL, to: folder, named: name)
+                return SharedFileManager.documentsURL
+                    .appendingPathComponent(folder, isDirectory: true)
+                    .appendingPathComponent(name)
+            },
+            onOpen: { saved in
+                let base = SharedFileManager.documentsURL.path + "/"
+                let relative = saved.path.replacingOccurrences(of: base, with: "")
+                if let url = URL(string: "nexusfileapp://\(relative)") {
+                    self.extensionContext?.open(url, completionHandler: nil)
+                }
+                self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
+            }
+        )
         let host = UIHostingController(rootView: content)
         addChild(host)
         host.view.frame = view.bounds

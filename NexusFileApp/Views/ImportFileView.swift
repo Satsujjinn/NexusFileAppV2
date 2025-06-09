@@ -4,12 +4,14 @@ import SwiftUI
 /// Allows the user to select a destination folder and file name.
 struct ImportFileView: View {
     let fileURL: URL
-    var onComplete: () -> Void
+    var onComplete: (URL) -> Void
 
     @State private var chosenFolder = ""
     @State private var fileName = ""
     @State private var showingNewFolder = false
     @State private var refreshID = UUID()
+    @State private var savedURL: URL?
+    @State private var showSuccess = false
 
     var body: some View {
         NavigationStack {
@@ -35,12 +37,17 @@ struct ImportFileView: View {
                     }
                     Section {
                         Button("Save File") {
+                            let name = fileName.isEmpty ? fileURL.lastPathComponent : fileName
                             try? SharedFileManager.shared.save(
                                 file: fileURL,
                                 to: chosenFolder,
-                                named: fileName.isEmpty ? fileURL.lastPathComponent : fileName
+                                named: name
                             )
-                            onComplete()
+                            let dest = SharedFileManager.shared.documentsURL
+                                .appendingPathComponent(chosenFolder, isDirectory: true)
+                                .appendingPathComponent(name)
+                            savedURL = dest
+                            showSuccess = true
                         }
                     }
                 }
@@ -51,6 +58,15 @@ struct ImportFileView: View {
             NewFolderSheet(title: "New Subfolder", placeholder: "Name") { name in
                 try? SharedFileManager.shared.createSubfolder(named: name, in: chosenFolder)
                 refreshID = UUID()
+            }
+        }
+        .alert("Successfully saved", isPresented: $showSuccess) {
+            Button("OK") {
+                if let dest = savedURL {
+                    onComplete(dest)
+                } else {
+                    onComplete(fileURL)
+                }
             }
         }
     }
