@@ -8,10 +8,12 @@ A modern iOS SwiftUI application to manage and share PDF & Excel documents local
 
 NexusFileApp provides a Files-like interface to organize, import, preview, and share work documents in one place.
 
+When a PDF or Excel file is opened from another app (Mail, Files, WhatsApp, etc.) NexusFileApp now displays a folder picker so you can choose exactly where to store the document.
+
 ## Features
 
 * Manage folders and subfolders
-* Import PDF and Excel files via the Files picker
+* Import PDF and Excel files via the Files picker or by opening them from other apps
 * Preview documents with QuickLook
 * Share files using the iOS share sheet
 * Search and sort by name or date
