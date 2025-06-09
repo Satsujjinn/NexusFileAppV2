@@ -34,6 +34,12 @@ class FileManagerService: ObservableObject {
     }
 
     private func ensureDefaultCategories() {
+        var isDir: ObjCBool = false
+        if !fileManager.fileExists(atPath: documentsURL.path, isDirectory: &isDir) {
+            try? fileManager.createDirectory(at: documentsURL,
+                                            withIntermediateDirectories: true)
+        }
+
         let migrations = [
             (old: "Calibrations", new: "Calibration Sheets"),
             (old: "Crop Information", new: "Crop Info")
@@ -60,13 +66,19 @@ class FileManagerService: ObservableObject {
             }
         }
 
+        guard
+            let contents = try? fileManager.contentsOfDirectory(
+                at: documentsURL,
+                includingPropertiesForKeys: [.isDirectoryKey],
+                options: [.skipsHiddenFiles]
+            ),
+            !contents.contains(where: { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false })
+        else { return }
+
         for name in defaultCategories {
             let folderURL = documentsURL.appendingPathComponent(name, isDirectory: true)
-            var isDir: ObjCBool = false
-            if !fileManager.fileExists(atPath: folderURL.path, isDirectory: &isDir) {
-                try? fileManager.createDirectory(at: folderURL,
-                                                 withIntermediateDirectories: false)
-            }
+            try? fileManager.createDirectory(at: folderURL,
+                                             withIntermediateDirectories: true)
         }
     }
 
@@ -95,7 +107,7 @@ class FileManagerService: ObservableObject {
 
     func createFolder(named name: String) {
         let newURL = currentURL.appendingPathComponent(name, isDirectory: true)
-        try? fileManager.createDirectory(at: newURL, withIntermediateDirectories: false)
+        try? fileManager.createDirectory(at: newURL, withIntermediateDirectories: true)
         loadItems()
     }
 
