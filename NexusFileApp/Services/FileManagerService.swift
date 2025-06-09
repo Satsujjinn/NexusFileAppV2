@@ -25,7 +25,7 @@ class FileManagerService: ObservableObject {
     ]
 
     init(startingAt url: URL? = nil,
-         documentsURL: URL = SharedFileManager.documentsURL) {
+         documentsURL: URL = SharedFileManager.shared.documentsURL) {
         self.documentsURL = documentsURL
         self.currentURL = url ?? documentsURL
 
