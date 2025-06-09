@@ -9,11 +9,34 @@ import SwiftUI
 
 @main
 struct NexusFileAppApp: App {
+    @State private var importURL: URL?
+
     var body: some Scene {
         WindowGroup {
             HomeView()
                 .accentColor(.nexusGreen)
                 .background(Color.nexusBackground.ignoresSafeArea())
+                .onOpenURL { url in
+                    guard url.isFileURL else { return }
+
+                    let tmp = FileManager.default.temporaryDirectory
+                        .appendingPathComponent(url.lastPathComponent)
+                    try? FileManager.default.removeItem(at: tmp)
+                    do {
+                        try FileManager.default.copyItem(at: url, to: tmp)
+                        importURL = tmp
+                    } catch {
+                        // Ignore copy failures
+                    }
+                }
+                .sheet(item: $importURL) { fileURL in
+                    ShareContentView(sharedURL: fileURL) { folder, name in
+                        try? SharedFileManager.save(file: fileURL,
+                                                   to: folder,
+                                                   named: name)
+                        importURL = nil
+                    }
+                }
         }
     }
 }
