@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 struct FolderView: View {
     @ObservedObject var service: FileManagerService
     let title: String
+    var openFileURL: URL? = nil
 
     @State private var showingNewFolder = false
     @State private var showingImporter = false
@@ -97,7 +98,12 @@ struct FolderView: View {
         .sheet(item: $previewURL) { url in
             FilePreviewView(url: url)
         }
-        .onAppear { service.loadItems() }
+        .onAppear {
+            service.loadItems()
+            if let open = openFileURL {
+                previewURL = open
+            }
+        }
     }
 
     @ViewBuilder

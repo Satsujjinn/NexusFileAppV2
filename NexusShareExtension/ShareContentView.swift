@@ -9,12 +9,15 @@ import SwiftUI
 
 struct ShareContentView: View {
     let sharedURL: URL
-    var onSave: (String, String) -> Void
+    var onSave: (String, String) -> URL?
+    var onOpen: (URL) -> Void
 
     @State private var chosenFolder = ""
     @State private var fileName = ""
     @State private var showingNewFolder = false
     @State private var refreshID = UUID()
+    @State private var savedURL: URL?
+    @State private var showSuccess = false
 
     var body: some View {
         NavigationStack {
@@ -41,10 +44,13 @@ struct ShareContentView: View {
                     }
                     Section {
                         Button("Stoor Lêer") {
-                            onSave(chosenFolder,
-                                   fileName.isEmpty
-                                     ? sharedURL.lastPathComponent
-                                     : fileName)
+                            if let dest = onSave(
+                                chosenFolder,
+                                fileName.isEmpty ? sharedURL.lastPathComponent : fileName
+                            ) {
+                                savedURL = dest
+                                showSuccess = true
+                            }
                         }
                     }
                 }
@@ -56,6 +62,14 @@ struct ShareContentView: View {
                 try? SharedFileManager.createSubfolder(named: name, in: chosenFolder)
                 refreshID = UUID()
             }
+        }
+        .alert("Successfully saved", isPresented: $showSuccess) {
+            Button("Open") {
+                if let dest = savedURL {
+                    onOpen(dest)
+                }
+            }
+            Button("Done", role: .cancel) {}
         }
     }
 }
