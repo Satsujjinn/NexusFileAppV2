@@ -59,13 +59,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AD4BEA962DE3859C00D81264 /* Exceptions for "NexusFileApp" folder in "NexusFileApp" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = AD5EA7DB2DDB49AF005E5C0E /* NexusFileApp */;
-		};
+                AD4BEA962DE3859C00D81264 /* Exceptions for "NexusFileApp" folder in "NexusFileApp" target */ = {
+                        isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+                        membershipExceptions = (
+                                Info.plist,
+                                Generated/GeneratedAssetSymbols.swift,
+                        );
+                        target = AD5EA7DB2DDB49AF005E5C0E /* NexusFileApp */;
+                };
 		ADCB48162DDB75430055FBA9 /* Exceptions for "NexusShareExtension" folder in "NexusShareExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
