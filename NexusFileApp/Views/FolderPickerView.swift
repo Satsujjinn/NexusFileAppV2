@@ -12,8 +12,10 @@ struct FolderPickerView: View {
         NavigationStack {
             List {
                 Section("Folders") {
-                    ForEach(SharedFileManager.shared.listFolders(at: subpath), id: \.
-self) { name in
+                    ForEach(
+                        SharedFileManager.shared.listFolders(at: subpath),
+                        id: \.self
+                    ) { name in
                         let nextPath = subpath.isEmpty ? name : "\(subpath)/\(name)"
                         NavigationLink {
                             FolderPickerView(subpath: nextPath, onSelect: onSelect)
