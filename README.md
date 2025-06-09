@@ -17,6 +17,7 @@ NexusFileApp provides a Files-like interface to organize, import, preview, and s
 * Search and sort by name or date
 * Rename, duplicate, and delete items with context menus and swipe actions
 * Light and Dark mode with custom branding colors
+* Sync files with iCloud and back them up with one tap
 
 ## Screenshots
 
@@ -45,6 +46,7 @@ NexusFileApp provides a Files-like interface to organize, import, preview, and s
 * In a folder view, use the “...” menu to create a folder, import files, or sort items.
 * Long-press or swipe an item for rename, duplicate, or delete options.
 * Tap the share icon to share documents via Mail, WhatsApp, or other apps.
+* Use the cloud buttons on the home screen to sync or back up all files to iCloud.
 
 ## License
 

@@ -45,7 +45,13 @@ struct HomeView: View {
             .navigationTitle("Categories")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Button { fm.syncFromICloud() } label: {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                    }
+                    Button { fm.backupToICloud() } label: {
+                        Image(systemName: "icloud.and.arrow.up")
+                    }
                     Button { showingNew = true } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 22))

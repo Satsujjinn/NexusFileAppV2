@@ -25,9 +25,7 @@ class FileManagerService: ObservableObject {
     ]
 
     init(startingAt url: URL? = nil,
-         documentsURL: URL = FileManager.default
-            .urls(for: .documentDirectory, in: .userDomainMask)
-            .first!) {
+         documentsURL: URL = SharedFileManager.documentsURL) {
         self.documentsURL = documentsURL
         self.currentURL = url ?? documentsURL
 
@@ -144,5 +142,37 @@ class FileManagerService: ObservableObject {
 
     func exportAsPDF(item: DirectoryItem) -> URL? {
         try? ExcelPDFExporter.export(at: item.id)
+    }
+
+    private var iCloudDocumentsURL: URL? {
+        FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents", isDirectory: true)
+    }
+
+    func backupToICloud() {
+        guard let cloud = iCloudDocumentsURL else { return }
+        copyRecursive(from: documentsURL, to: cloud)
+    }
+
+    func syncFromICloud() {
+        guard let cloud = iCloudDocumentsURL else { return }
+        copyRecursive(from: cloud, to: documentsURL)
+        loadItems()
+    }
+
+    private func copyRecursive(from src: URL, to dest: URL) {
+        var isDir: ObjCBool = false
+        if fileManager.fileExists(atPath: src.path, isDirectory: &isDir), isDir.boolValue {
+            try? fileManager.createDirectory(at: dest, withIntermediateDirectories: true)
+            let contents = (try? fileManager.contentsOfDirectory(at: src, includingPropertiesForKeys: nil, options: [])) ?? []
+            for item in contents {
+                let destItem = dest.appendingPathComponent(item.lastPathComponent)
+                copyRecursive(from: item, to: destItem)
+            }
+        } else {
+            if fileManager.fileExists(atPath: dest.path) {
+                try? fileManager.removeItem(at: dest)
+            }
+            try? fileManager.copyItem(at: src, to: dest)
+        }
     }
 }
