@@ -30,7 +30,9 @@ struct NexusFileAppApp: App {
                     }
                 }
                 .sheet(item: $importURL) { fileURL in
-                    ShareContentView(url: fileURL)
+                    ImportFileView(fileURL: fileURL) {
+                        importURL = nil
+                    }
                 }
         }
     }

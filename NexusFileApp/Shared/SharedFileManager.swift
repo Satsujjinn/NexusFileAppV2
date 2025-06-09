@@ -5,8 +5,15 @@ final class SharedFileManager {
     private let fileManager = FileManager.default
     private init() {}
 
+    /// Identifier for the shared app group used by the app and the
+    /// share extension so they operate on the same file container.
+    private let appGroupID = "group.com.leon.NexusFileApp"
+
+    /// Base Documents directory inside the shared app group container.
     var documentsURL: URL {
-        fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        fileManager
+            .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)!
+            .appendingPathComponent("Documents", isDirectory: true)
     }
 
     func listFiles(in subpath: String = "") -> [URL] {
@@ -35,5 +42,29 @@ final class SharedFileManager {
             try fileManager.removeItem(at: dest)
         }
         try fileManager.copyItem(at: url, to: dest)
+    }
+
+    /// Create a subfolder inside an optional parent path
+    func createSubfolder(named name: String, in parent: String = "") throws {
+        var url = documentsURL
+        if !parent.isEmpty {
+            url.appendPathComponent(parent, isDirectory: true)
+        }
+        url.appendPathComponent(name, isDirectory: true)
+        try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
+    }
+
+    /// List subfolders inside an optional relative path
+    func listFolders(at subpath: String = "") -> [String] {
+        let url = subpath.isEmpty ? documentsURL : documentsURL.appendingPathComponent(subpath, isDirectory: true)
+        guard let contents = try? fileManager.contentsOfDirectory(
+            at: url,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else { return [] }
+        return contents
+            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false }
+            .map { $0.lastPathComponent }
+            .sorted()
     }
 }
