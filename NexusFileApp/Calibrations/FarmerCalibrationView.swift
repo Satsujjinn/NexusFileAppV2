@@ -59,27 +59,43 @@ struct SaveButton: View {
     let farmer: Farmer
     @ObservedObject var store: CalibrationStore
     @State private var shareURL: URL?
+    @State private var showOptions = false
 
     var body: some View {
-        Button {
-            export()
-        } label: {
+        Button(action: { showOptions = true }) {
             Image(systemName: "tray.and.arrow.down")
+        }
+        .confirmationDialog("Export Format", isPresented: $showOptions) {
+            Button("Excel (.csv)") { export(type: .csv) }
+            Button("PDF (.pdf)") { export(type: .pdf) }
         }
         .sheet(item: $shareURL) { url in
             ShareSheet(activityItems: [url])
         }
     }
 
-    private func export() {
+    private enum ExportType { case csv, pdf }
+
+    private func export(type: ExportType) {
         let folder = SharedFileManager.shared.documentsURL
             .appendingPathComponent("Calibration Sheets", isDirectory: true)
             .appendingPathComponent(farmer.name, isDirectory: true)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        let filename = "Trekker Inligting_\(farmer.name)_\(Self.dateFormatter.string(from: Date())).csv"
+        var filename = "Trekker Inligting_\(farmer.name)_\(Self.dateFormatter.string(from: Date()))"
+        switch type {
+        case .csv:
+            filename += ".csv"
+        case .pdf:
+            filename += ".pdf"
+        }
         let fileURL = folder.appendingPathComponent(filename)
         if let farmerData = store.farmers.first(where: { $0.id == farmer.id }) {
-            try? CSVExporter.export(farmer: farmerData, to: fileURL)
+            switch type {
+            case .csv:
+                try? CSVExporter.export(farmer: farmerData, to: fileURL)
+            case .pdf:
+                try? PDFExporter.export(farmer: farmerData, to: fileURL)
+            }
             shareURL = fileURL
         }
     }
