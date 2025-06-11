@@ -25,6 +25,11 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
+                    NavigationLink(destination: CalibrationsView()) {
+                        CategoryCard(name: "Calibrations")
+                    }
+                    .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
+
                     ForEach(fm.items.filter(\.isDirectory)) { item in
                         NavigationLink(
                             destination: FolderView(

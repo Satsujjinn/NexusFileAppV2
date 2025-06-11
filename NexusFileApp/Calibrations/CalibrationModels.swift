@@ -1,0 +1,78 @@
+import Foundation
+import SwiftUI
+
+/// Represents a single calibration recommendation.
+struct Recommendation: Identifiable, Codable {
+    var id = UUID()
+    var trekker: String = ""
+    var rat: String = ""
+    var revs: String = ""
+    var tyd: String = ""
+    var pomp: String = ""
+    var druk: String = ""
+    var date: Date = Date()
+}
+
+/// Represents a farmer with a list of calibration recommendations.
+struct Farmer: Identifiable, Codable {
+    var id = UUID()
+    var name: String
+    var recommendations: [Recommendation] = []
+}
+
+/// Simple data store saved as JSON. This is a placeholder in lieu of Core Data.
+@MainActor
+class CalibrationStore: ObservableObject {
+    @Published private(set) var farmers: [Farmer] = []
+
+    private let saveURL: URL
+
+    init(documentsURL: URL = SharedFileManager.shared.documentsURL) {
+        self.saveURL = documentsURL.appendingPathComponent("calibrations.json")
+        load()
+    }
+
+    func addFarmer(named name: String) {
+        let farmer = Farmer(name: name)
+        farmers.append(farmer)
+        save()
+    }
+
+    func rename(farmer: Farmer, to newName: String) {
+        guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        farmers[idx].name = newName
+        save()
+    }
+
+    func delete(farmer: Farmer) {
+        farmers.removeAll { $0.id == farmer.id }
+        save()
+    }
+
+    func addRecommendation(to farmer: Farmer) {
+        guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        let rec = Recommendation()
+        farmers[idx].recommendations.insert(rec, at: 0)
+        save()
+    }
+
+    func updateRecommendation(_ rec: Recommendation, for farmer: Farmer) {
+        guard let fidx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        guard let ridx = farmers[fidx].recommendations.firstIndex(where: { $0.id == rec.id }) else { return }
+        farmers[fidx].recommendations[ridx] = rec
+        save()
+    }
+
+    private func load() {
+        guard let data = try? Data(contentsOf: saveURL) else { return }
+        if let decoded = try? JSONDecoder().decode([Farmer].self, from: data) {
+            self.farmers = decoded
+        }
+    }
+
+    private func save() {
+        if let data = try? JSONEncoder().encode(farmers) {
+            try? data.write(to: saveURL)
+        }
+    }
+}
