@@ -30,4 +30,12 @@ struct CalibrationTests {
         try? CSVExporter.export(farmer: farmer, to: file)
         #expect(FileManager.default.fileExists(atPath: file.path))
     }
+
+    @Test func exportPDF() async throws {
+        var farmer = Farmer(name: "PDF")
+        farmer.recommendations.append(Recommendation())
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("test.pdf")
+        try? PDFExporter.export(farmer: farmer, to: file)
+        #expect(FileManager.default.fileExists(atPath: file.path))
+    }
 }

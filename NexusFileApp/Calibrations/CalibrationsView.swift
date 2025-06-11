@@ -24,7 +24,7 @@ struct CalibrationsView: View {
                 }
             }
         }
-        .navigationTitle("Calibrations")
+        .navigationTitle("Calibration Sheets")
         .toolbar {
             Button("Add Farmer") { showingAdd = true }
         }
