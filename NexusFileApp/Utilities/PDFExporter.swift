@@ -9,18 +9,28 @@ struct PDFExporter {
         let data = renderer.pdfData { ctx in
             ctx.beginPage()
             var y: CGFloat = 20
-            let header = "DATE,TREKKER,RAT,REVS,TYD,POMP,DRUK"
-            draw(header, at: &y, pageRect: pageRect)
+            let columnHeader = "DATE,TREKKER,RAT,REVS,TYD,POMP,DRUK"
+            draw(columnHeader, at: &y, pageRect: pageRect)
             let df = ISO8601DateFormatter()
-            for rec in farmer.recommendations where !rec.isHeader {
-                let row = [df.string(from: rec.date), rec.trekker, rec.rat, rec.revs, rec.tyd, rec.pomp, rec.druk]
-                    .map { $0.replacingOccurrences(of: ",", with: " ") }
-                    .joined(separator: ",")
-                if y > pageRect.height - 20 {
-                    ctx.beginPage()
-                    y = 20
+            for rec in farmer.recommendations {
+                if let header = rec.header {
+                    if y > pageRect.height - 40 {
+                        ctx.beginPage()
+                        y = 20
+                    }
+                    y += 20
+                    draw(header, at: &y, pageRect: pageRect)
+                    draw(columnHeader, at: &y, pageRect: pageRect)
+                } else {
+                    let row = [df.string(from: rec.date), rec.trekker, rec.rat, rec.revs, rec.tyd, rec.pomp, rec.druk]
+                        .map { $0.replacingOccurrences(of: ",", with: " ") }
+                        .joined(separator: ",")
+                    if y > pageRect.height - 20 {
+                        ctx.beginPage()
+                        y = 20
+                    }
+                    draw(row, at: &y, pageRect: pageRect)
                 }
-                draw(row, at: &y, pageRect: pageRect)
             }
         }
         try data.write(to: url)

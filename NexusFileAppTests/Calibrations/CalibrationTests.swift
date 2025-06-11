@@ -1,4 +1,5 @@
 import Testing
+import PDFKit
 @testable import NexusFileApp
 
 struct CalibrationTests {
@@ -25,17 +26,21 @@ struct CalibrationTests {
 
     @Test func exportCSV() async throws {
         var farmer = Farmer(name: "CSV")
+        farmer.recommendations.append(Recommendation(header: "Section 1"))
         farmer.recommendations.append(Recommendation(trekker: "t", rat: "r", revs: "v", tyd: "t", pomp: "p", druk: "d"))
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("test.csv")
         try? CSVExporter.export(farmer: farmer, to: file)
-        #expect(FileManager.default.fileExists(atPath: file.path))
+        let contents = (try? String(contentsOf: file)) ?? ""
+        #expect(contents.contains("Section 1"))
     }
 
     @Test func exportPDF() async throws {
         var farmer = Farmer(name: "PDF")
+        farmer.recommendations.append(Recommendation(header: "Header A"))
         farmer.recommendations.append(Recommendation())
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("test.pdf")
         try? PDFExporter.export(farmer: farmer, to: file)
-        #expect(FileManager.default.fileExists(atPath: file.path))
+        let doc = PDFDocument(url: file)
+        #expect(doc?.string?.contains("Header A") == true)
     }
 }
