@@ -19,14 +19,16 @@ struct CalibrationTests {
         #expect(store.farmers.count == 2)
     }
 
-    @Test func recommendationSorting() async throws {
-        var farmer = Farmer(name: "Test")
-        farmer.recommendations = [
-            Recommendation(date: Date(timeIntervalSince1970: 0)),
-            Recommendation(date: Date())
-        ]
-        let sorted = farmer.recommendations.sorted { $0.date > $1.date }
-        #expect(sorted.first?.date ?? Date() > sorted.last?.date ?? Date())
+    @Test func addRecommendationOrder() async throws {
+        let store = CalibrationStore(documentsURL: FileManager.default.temporaryDirectory)
+        store.addFarmer(named: "Tester")
+        guard let farmer = store.farmers.first else { throw TestError("missing farmer") }
+        store.addRecommendation(to: farmer)
+        let firstID = store.farmers[0].recommendations.first?.id
+        store.addRecommendation(to: farmer)
+        let newFirstID = store.farmers[0].recommendations.first?.id
+        #expect(firstID != newFirstID)
+        #expect(store.farmers[0].recommendations.last?.id == firstID)
     }
 
     @Test func exportCSV() async throws {

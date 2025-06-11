@@ -12,7 +12,6 @@ struct Recommendation: Identifiable, Codable {
     var tyd: String = ""
     var pomp: String = ""
     var druk: String = ""
-    var date: Date = Date()
 
     var isHeader: Bool { header != nil }
 }
