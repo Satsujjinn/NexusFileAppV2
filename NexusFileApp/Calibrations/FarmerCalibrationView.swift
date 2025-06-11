@@ -7,12 +7,13 @@ struct FarmerCalibrationView: View {
 
     var body: some View {
         List {
-            ForEach(store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []) { rec in
+            let recs = store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []
+            ForEach(Array(recs.enumerated()), id: \.element.id) { index, rec in
                 if let header = rec.header {
                     Text(header)
                         .font(.headline)
                 } else {
-                    RecommendationRow(rec: binding(for: rec))
+                    RecommendationRow(index: index + 1, rec: binding(for: rec))
                 }
             }
             .onDelete { indexSet in
@@ -63,18 +64,14 @@ struct FarmerCalibrationView: View {
 }
 
 struct RecommendationRow: View {
+    let index: Int
     @Binding var rec: Recommendation
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
-                DatePicker(
-                    "",
-                    selection: $rec.date,
-                    displayedComponents: .date
-                )
-                .labelsHidden()
-                .frame(width: 110)
+                Text("\(index)")
+                    .frame(width: 30)
 
                 TextField("TREKKER", text: $rec.trekker)
                     .frame(width: 120)
