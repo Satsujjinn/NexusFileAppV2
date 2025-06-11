@@ -9,9 +9,8 @@ struct PDFExporter {
         let data = renderer.pdfData { ctx in
             ctx.beginPage()
             var y: CGFloat = 20
-            let columnHeader = "DATE,TREKKER,RAT,REVS,TYD,POMP,DRUK"
+            let columnHeader = "TREKKER,RAT,REVS,TYD,POMP,DRUK"
             draw(columnHeader, at: &y, pageRect: pageRect)
-            let df = ISO8601DateFormatter()
             for rec in farmer.recommendations {
                 if let header = rec.header {
                     if y > pageRect.height - 40 {
@@ -22,7 +21,7 @@ struct PDFExporter {
                     draw(header, at: &y, pageRect: pageRect)
                     draw(columnHeader, at: &y, pageRect: pageRect)
                 } else {
-                    let row = [df.string(from: rec.date), rec.trekker, rec.rat, rec.revs, rec.tyd, rec.pomp, rec.druk]
+                    let row = [rec.trekker, rec.rat, rec.revs, rec.tyd, rec.pomp, rec.druk]
                         .map { $0.replacingOccurrences(of: ",", with: " ") }
                         .joined(separator: ",")
                     if y > pageRect.height - 20 {
