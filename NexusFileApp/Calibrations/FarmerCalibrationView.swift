@@ -39,16 +39,28 @@ struct RecommendationRow: View {
     @Binding var rec: Recommendation
 
     var body: some View {
-        VStack(alignment: .leading) {
+        ScrollView(.horizontal, showsIndicators: false) {
             HStack {
+                DatePicker(
+                    "",
+                    selection: $rec.date,
+                    displayedComponents: .date
+                )
+                .labelsHidden()
+                .frame(width: 110)
+
                 TextField("TREKKER", text: $rec.trekker)
+                    .frame(width: 120)
                 TextField("RAT", text: $rec.rat)
+                    .frame(width: 60)
                 TextField("REVS", text: $rec.revs)
-            }
-            HStack {
+                    .frame(width: 60)
                 TextField("TYD OOR TOETSAFSTAND", text: $rec.tyd)
+                    .frame(width: 160)
                 TextField("POMP", text: $rec.pomp)
+                    .frame(width: 60)
                 TextField("DRUK", text: $rec.druk)
+                    .frame(width: 60)
             }
         }
         .textFieldStyle(.roundedBorder)
