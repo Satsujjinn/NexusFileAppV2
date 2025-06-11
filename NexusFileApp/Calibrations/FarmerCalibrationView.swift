@@ -39,6 +39,10 @@ struct FarmerCalibrationView: View {
                 EditButton()
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            CreateExcelButton(farmer: farmer, store: store)
+                .padding([.horizontal, .bottom])
+        }
         .sheet(isPresented: $showAddHeader) {
             AddHeaderSheet { text in
                 store.addHeader(text, to: farmer)
@@ -95,6 +99,8 @@ struct SaveButton: View {
     @ObservedObject var store: CalibrationStore
     @State private var shareURL: URL?
     @State private var showOptions = false
+    @State private var showError = false
+    @State private var errorMessage = ""
 
     var body: some View {
         Button(action: { showOptions = true }) {
@@ -107,31 +113,27 @@ struct SaveButton: View {
         .sheet(item: $shareURL) { url in
             ShareSheet(activityItems: [url])
         }
+        .alert("Export Failed", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
     }
 
     private enum ExportType { case csv, pdf }
 
     private func export(type: ExportType) {
-        let folder = SharedFileManager.shared.documentsURL
-            .appendingPathComponent("Calibration Sheets", isDirectory: true)
-            .appendingPathComponent(farmer.name, isDirectory: true)
-        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        var filename = "Trekker Inligting_\(farmer.name)_\(Self.dateFormatter.string(from: Date()))"
-        switch type {
-        case .csv:
-            filename += ".csv"
-        case .pdf:
-            filename += ".pdf"
+        guard let farmerData = store.farmers.first(where: { $0.id == farmer.id }) else {
+            errorMessage = FileExporterError.missingFarmer.localizedDescription
+            showError = true
+            return
         }
-        let fileURL = folder.appendingPathComponent(filename)
-        if let farmerData = store.farmers.first(where: { $0.id == farmer.id }) {
-            switch type {
-            case .csv:
-                try? CSVExporter.export(farmer: farmerData, to: fileURL)
-            case .pdf:
-                try? PDFExporter.export(farmer: farmerData, to: fileURL)
-            }
-            shareURL = fileURL
+        do {
+            let url = try FileExporter.export(farmer: farmerData, format: type == .csv ? .csv : .pdf)
+            shareURL = url
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
         }
     }
 
@@ -174,6 +176,45 @@ struct AddHeaderSheet: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+        }
+    }
+}
+
+struct CreateExcelButton: View {
+    let farmer: Farmer
+    @ObservedObject var store: CalibrationStore
+    @State private var shareURL: URL?
+    @State private var showError = false
+    @State private var errorMessage = ""
+
+    var body: some View {
+        Button("Create Excel File") {
+            export()
+        }
+        .frame(maxWidth: .infinity)
+        .buttonStyle(.borderedProminent)
+        .sheet(item: $shareURL) { url in
+            ShareSheet(activityItems: [url])
+        }
+        .alert("Export Failed", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
+    }
+
+    private func export() {
+        guard let farmerData = store.farmers.first(where: { $0.id == farmer.id }) else {
+            errorMessage = FileExporterError.missingFarmer.localizedDescription
+            showError = true
+            return
+        }
+        do {
+            let url = try FileExporter.export(farmer: farmerData, format: .csv)
+            shareURL = url
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
         }
     }
 }
