@@ -73,7 +73,7 @@ struct ExportButton: View {
         if let template, let docs = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true) {
             let dest = docs.appendingPathComponent(filename)
             try? FileManager.default.copyItem(at: template, to: dest)
-            UIApplication.shared.presentShareSheet(url: dest)
+            UIApplication.presentShareSheet(url: dest)
         }
     }
 
