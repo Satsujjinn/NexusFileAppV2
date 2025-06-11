@@ -34,22 +34,37 @@ class CalibrationStore: ObservableObject {
     init(documentsURL: URL = SharedFileManager.shared.documentsURL) {
         self.saveURL = documentsURL.appendingPathComponent("calibrations.json")
         load()
+        sortFarmers()
     }
 
     func addFarmer(named name: String) {
         let farmer = Farmer(name: name)
         farmers.append(farmer)
+        sortFarmers()
         save()
     }
 
     func rename(farmer: Farmer, to newName: String) {
         guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
         farmers[idx].name = newName
+        sortFarmers()
         save()
     }
 
     func delete(farmer: Farmer) {
         farmers.removeAll { $0.id == farmer.id }
+        save()
+    }
+
+    func duplicate(farmer: Farmer) {
+        let copy = Farmer(name: "\(farmer.name) copy", recommendations: farmer.recommendations)
+        farmers.append(copy)
+        sortFarmers()
+        save()
+    }
+
+    func moveFarmers(at offsets: IndexSet, to destination: Int) {
+        farmers.move(fromOffsets: offsets, toOffset: destination)
         save()
     }
 
@@ -91,6 +106,7 @@ class CalibrationStore: ObservableObject {
         guard let data = try? Data(contentsOf: saveURL) else { return }
         if let decoded = try? JSONDecoder().decode([Farmer].self, from: data) {
             self.farmers = decoded
+            sortFarmers()
         }
     }
 
@@ -98,5 +114,9 @@ class CalibrationStore: ObservableObject {
         if let data = try? JSONEncoder().encode(farmers) {
             try? data.write(to: saveURL)
         }
+    }
+
+    private func sortFarmers() {
+        farmers.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 }

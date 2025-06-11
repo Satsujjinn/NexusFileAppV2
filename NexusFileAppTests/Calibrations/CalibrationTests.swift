@@ -6,12 +6,17 @@ struct CalibrationTests {
     @Test func farmerCRUD() async throws {
         let store = CalibrationStore(documentsURL: FileManager.default.temporaryDirectory)
         store.addFarmer(named: "John")
-        #expect(store.farmers.count == 1)
+        store.addFarmer(named: "Adam")
+        #expect(store.farmers.first?.name == "Adam")
         let farmer = store.farmers[0]
-        store.rename(farmer: farmer, to: "Jack")
-        #expect(store.farmers[0].name == "Jack")
-        store.delete(farmer: farmer)
-        #expect(store.farmers.isEmpty)
+        store.rename(farmer: farmer, to: "Zack")
+        #expect(store.farmers.last?.name == "Zack")
+        store.duplicate(farmer: store.farmers[0])
+        #expect(store.farmers.count == 3)
+        store.moveFarmers(at: IndexSet(integer: 0), to: 2)
+        #expect(store.farmers[2].name.contains("Adam"))
+        store.delete(farmer: store.farmers[2])
+        #expect(store.farmers.count == 2)
     }
 
     @Test func recommendationSorting() async throws {
