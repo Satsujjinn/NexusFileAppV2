@@ -17,6 +17,7 @@ struct FolderView: View {
     @State private var showingImporter = false
     @State private var shareURL: URL?
     @State private var renameTarget: DirectoryItem?
+    @State private var moveTarget: DirectoryItem?
     @State private var previewURL: URL?
     @State private var sortMode: SortMode = .name
     @State private var searchText = ""
@@ -95,6 +96,12 @@ struct FolderView: View {
                 service.rename(item: item, to: newName)
             }
         }
+        .sheet(item: $moveTarget) { item in
+            FolderPickerView(subpath: "") { path in
+                service.move(item: item, to: path)
+                moveTarget = nil
+            }
+        }
         .sheet(item: $previewURL) { url in
             FilePreviewView(url: url)
         }
@@ -118,6 +125,7 @@ struct FolderView: View {
             .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
             .contextMenu {
                 Button("Rename") { renameTarget = item }
+                Button("Move") { moveTarget = item }
                 Button("Delete", role: .destructive) {
                     service.delete(item: item)
                 }
@@ -147,6 +155,7 @@ struct FolderView: View {
                 }
                 Button("Duplicate") { service.duplicate(item: item) }
                 Button("Rename") { renameTarget = item }
+                Button("Move") { moveTarget = item }
                 Button("Delete", role: .destructive) {
                     service.delete(item: item)
                 }

@@ -22,4 +22,12 @@ struct CalibrationTests {
         let sorted = farmer.recommendations.sorted { $0.date > $1.date }
         #expect(sorted.first?.date ?? Date() > sorted.last?.date ?? Date())
     }
+
+    @Test func exportCSV() async throws {
+        var farmer = Farmer(name: "CSV")
+        farmer.recommendations.append(Recommendation(trekker: "t", rat: "r", revs: "v", tyd: "t", pomp: "p", druk: "d"))
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("test.csv")
+        try? CSVExporter.export(farmer: farmer, to: file)
+        #expect(FileManager.default.fileExists(atPath: file.path))
+    }
 }

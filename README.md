@@ -18,6 +18,8 @@ When a PDF or Excel file is opened from another app (Mail, Files, WhatsApp, etc.
 * Share files using the iOS share sheet
 * Search and sort by name or date
 * Rename, duplicate, and delete items with context menus and swipe actions
+* Move files and folders to any category
+* Save calibration data to a CSV file in each farmer's folder
 * Light and Dark mode with custom branding colors
 * Sync files with iCloud and back them up with one tap
 

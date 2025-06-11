@@ -59,4 +59,18 @@ struct NexusFileAppTests {
         #expect(!fm.fileExists(atPath: file.path))
     }
 
+    @Test func move() throws {
+        let service = try makeService()
+        let fm = FileManager.default
+        let src = service.currentURL.appendingPathComponent("src.txt")
+        try "data".write(to: src, atomically: true, encoding: .utf8)
+        service.loadItems()
+        service.createFolder(named: "Dest")
+        let item = DirectoryItem(id: src)
+        service.move(item: item, to: "Dest")
+        let dest = service.currentURL.appendingPathComponent("Dest/src.txt")
+        #expect(fm.fileExists(atPath: dest.path))
+        #expect(!fm.fileExists(atPath: src.path))
+    }
+
 }

@@ -18,7 +18,7 @@ struct FarmerCalibrationView: View {
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
-                ExportButton(farmer: farmer)
+                SaveButton(farmer: farmer, store: store)
             }
         }
     }
@@ -55,25 +55,32 @@ struct RecommendationRow: View {
     }
 }
 
-struct ExportButton: View {
+struct SaveButton: View {
     let farmer: Farmer
+    @ObservedObject var store: CalibrationStore
+    @State private var shareURL: URL?
 
     var body: some View {
         Button {
             export()
         } label: {
-            Image(systemName: "square.and.arrow.up")
+            Image(systemName: "tray.and.arrow.down")
+        }
+        .sheet(item: $shareURL) { url in
+            ShareSheet(activityItems: [url])
         }
     }
 
     private func export() {
-        // Placeholder export implementation
-        let template = Bundle.main.url(forResource: "Trekker-Inligting-Template", withExtension: "xlsx")
-        let filename = "Trekker Inligting_\(farmer.name)_\(Self.dateFormatter.string(from: Date())).xlsx"
-        if let template, let docs = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true) {
-            let dest = docs.appendingPathComponent(filename)
-            try? FileManager.default.copyItem(at: template, to: dest)
-            UIApplication.presentShareSheet(url: dest)
+        let folder = SharedFileManager.shared.documentsURL
+            .appendingPathComponent("Calibration Sheets", isDirectory: true)
+            .appendingPathComponent(farmer.name, isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let filename = "Trekker Inligting_\(farmer.name)_\(Self.dateFormatter.string(from: Date())).csv"
+        let fileURL = folder.appendingPathComponent(filename)
+        if let farmerData = store.farmers.first(where: { $0.id == farmer.id }) {
+            try? CSVExporter.export(farmer: farmerData, to: fileURL)
+            shareURL = fileURL
         }
     }
 

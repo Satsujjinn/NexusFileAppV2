@@ -152,6 +152,21 @@ class FileManagerService: ObservableObject {
         loadItems()
     }
 
+    func move(item: DirectoryItem, to subfolder: String) {
+        let destFolder = documentsURL.appendingPathComponent(subfolder, isDirectory: true)
+        try? fileManager.createDirectory(at: destFolder, withIntermediateDirectories: true)
+        let destURL = destFolder.appendingPathComponent(item.id.lastPathComponent)
+        do {
+            if fileManager.fileExists(atPath: destURL.path) {
+                try fileManager.removeItem(at: destURL)
+            }
+            try fileManager.moveItem(at: item.id, to: destURL)
+        } catch {
+            print("Move failed: \(error)")
+        }
+        loadItems()
+    }
+
     func exportAsPDF(item: DirectoryItem) -> URL? {
         try? ExcelPDFExporter.export(at: item.id)
     }
