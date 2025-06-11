@@ -4,10 +4,11 @@ struct CalibrationsView: View {
     @StateObject private var store = CalibrationStore()
     @State private var showingAdd = false
     @State private var renameTarget: Farmer?
+    @Environment(\.editMode) private var editMode
 
     var body: some View {
         List {
-            ForEach(store.farmers.sorted { $0.name < $1.name }) { farmer in
+            ForEach(store.farmers) { farmer in
                 NavigationLink {
                     FarmerCalibrationView(farmer: farmer, store: store)
                 } label: {
@@ -22,10 +23,20 @@ struct CalibrationsView: View {
                     }
                     .tint(.blue)
                 }
+                .contextMenu {
+                    Button("Copy") { store.duplicate(farmer: farmer) }
+                    Button("Delete", role: .destructive) {
+                        store.delete(farmer: farmer)
+                    }
+                }
+            }
+            .onMove { indices, newOffset in
+                store.moveFarmers(at: indices, to: newOffset)
             }
         }
         .navigationTitle("Calibration Sheets")
         .toolbar {
+            EditButton()
             Button("Add Farmer") { showingAdd = true }
         }
         .sheet(isPresented: $showingAdd) {
