@@ -4,6 +4,8 @@ import SwiftUI
 /// Represents a single calibration recommendation.
 struct Recommendation: Identifiable, Codable {
     var id = UUID()
+    /// Optional header text. If non-nil this row represents a header rather than a recommendation.
+    var header: String? = nil
     var trekker: String = ""
     var rat: String = ""
     var revs: String = ""
@@ -11,6 +13,8 @@ struct Recommendation: Identifiable, Codable {
     var pomp: String = ""
     var druk: String = ""
     var date: Date = Date()
+
+    var isHeader: Bool { header != nil }
 }
 
 /// Represents a farmer with a list of calibration recommendations.
@@ -56,10 +60,30 @@ class CalibrationStore: ObservableObject {
         save()
     }
 
+    func addHeader(_ text: String, to farmer: Farmer) {
+        guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        var header = Recommendation()
+        header.header = text
+        farmers[idx].recommendations.insert(header, at: 0)
+        save()
+    }
+
     func updateRecommendation(_ rec: Recommendation, for farmer: Farmer) {
         guard let fidx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
         guard let ridx = farmers[fidx].recommendations.firstIndex(where: { $0.id == rec.id }) else { return }
         farmers[fidx].recommendations[ridx] = rec
+        save()
+    }
+
+    func deleteRecommendations(at offsets: IndexSet, from farmer: Farmer) {
+        guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        farmers[idx].recommendations.remove(atOffsets: offsets)
+        save()
+    }
+
+    func moveRecommendations(at offsets: IndexSet, to newOffset: Int, for farmer: Farmer) {
+        guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        farmers[idx].recommendations.move(fromOffsets: offsets, toOffset: newOffset)
         save()
     }
 

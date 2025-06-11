@@ -6,7 +6,7 @@ struct CSVExporter {
             "DATE,TREKKER,RAT,REVS,TYD,POMP,DRUK"
         ]
         let df = ISO8601DateFormatter()
-        for rec in farmer.recommendations {
+        for rec in farmer.recommendations where !rec.isHeader {
             let row = [df.string(from: rec.date), rec.trekker, rec.rat, rec.revs, rec.tyd, rec.pomp, rec.druk]
                 .map { $0.replacingOccurrences(of: ",", with: " ") }
                 .joined(separator: ",")
