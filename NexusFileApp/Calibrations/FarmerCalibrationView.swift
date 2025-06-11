@@ -3,22 +3,45 @@ import SwiftUI
 struct FarmerCalibrationView: View {
     let farmer: Farmer
     @ObservedObject var store: CalibrationStore
+    @State private var showAddHeader = false
 
     var body: some View {
         List {
-            ForEach(store.farmers.first(where: { $0.id == farmer.id })?.recommendations.sorted { $0.date > $1.date } ?? []) { rec in
-                RecommendationRow(rec: binding(for: rec))
+            ForEach(store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []) { rec in
+                if let header = rec.header {
+                    Text(header)
+                        .font(.headline)
+                } else {
+                    RecommendationRow(rec: binding(for: rec))
+                }
+            }
+            .onDelete { indexSet in
+                store.deleteRecommendations(at: indexSet, from: farmer)
+            }
+            .onMove { indices, newOffset in
+                store.moveRecommendations(at: indices, to: newOffset, for: farmer)
             }
         }
         .navigationTitle(farmer.name)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Add Recommendation") {
+                Button("New Trekker") {
                     store.addRecommendation(to: farmer)
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Add Header") { showAddHeader = true }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
                 SaveButton(farmer: farmer, store: store)
+            }
+            ToolbarItem(placement: .navigationBarLeading) {
+                EditButton()
+            }
+        }
+        .sheet(isPresented: $showAddHeader) {
+            AddHeaderSheet { text in
+                store.addHeader(text, to: farmer)
             }
         }
     }
@@ -125,6 +148,33 @@ extension UIApplication {
               let root = scene.windows.first?.rootViewController else { return }
         let av = UIActivityViewController(activityItems: [url], applicationActivities: nil)
         root.present(av, animated: true)
+    }
+}
+
+struct AddHeaderSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var text = ""
+    var onAdd: (String) -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                TextField("Header", text: $text)
+            }
+            .navigationTitle("Add Header")
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add") {
+                        onAdd(text)
+                        dismiss()
+                    }
+                    .disabled(text.isEmpty)
+                }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
     }
 }
 
