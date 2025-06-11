@@ -87,7 +87,7 @@ struct RecommendationRow: View {
                     .frame(width: 60)
             }
         }
-        .textFieldStyle(.roundedBorder)
+        .textFieldStyle(BlackBorderTextFieldStyle())
     }
 }
 

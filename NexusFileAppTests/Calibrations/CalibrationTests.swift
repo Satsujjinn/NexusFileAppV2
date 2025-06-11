@@ -39,6 +39,7 @@ struct CalibrationTests {
         try? CSVExporter.export(farmer: farmer, to: file)
         let contents = (try? String(contentsOf: file)) ?? ""
         #expect(contents.contains("Section 1"))
+        #expect(contents.contains("NEXUSAG"))
     }
 
     @Test func exportPDF() async throws {
@@ -49,5 +50,6 @@ struct CalibrationTests {
         try? PDFExporter.export(farmer: farmer, to: file)
         let doc = PDFDocument(url: file)
         #expect(doc?.string?.contains("Header A") == true)
+        #expect(doc?.string?.contains("NEXUSAG") == true)
     }
 }
