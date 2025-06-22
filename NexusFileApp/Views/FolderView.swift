@@ -104,7 +104,7 @@ struct FolderView: View {
             FilePreviewView(url: url)
         }
         .onAppear {
-            service.loadItems()
+            service.loadItemsAsync()
             if let open = openFileURL {
                 previewURL = open
             }

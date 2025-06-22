@@ -83,7 +83,7 @@ struct HomeView: View {
                     fm.rename(item: item, to: newName)
                 }
             }
-            .onAppear { fm.loadItems() }
+            .onAppear { fm.loadItemsAsync() }
             .alert("Successfully saved", isPresented: $showSavedAlert) {
                 Button("Open") {
                     if let file = pendingFile {

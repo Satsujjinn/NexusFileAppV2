@@ -101,6 +101,33 @@ class FileManagerService: ObservableObject {
             }
     }
 
+    /// Load items on a background queue to avoid blocking the UI.
+    func loadItemsAsync() {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let keys: [URLResourceKey] = [.isDirectoryKey]
+            guard let urls = try? self.fileManager.contentsOfDirectory(
+                at: self.currentURL,
+                includingPropertiesForKeys: keys,
+                options: [.skipsHiddenFiles]
+            ) else {
+                DispatchQueue.main.async { self.items = [] }
+                return
+            }
+
+            let newItems = urls.map { DirectoryItem(id: $0) }
+                .sorted {
+                    if $0.isDirectory && !$1.isDirectory { return true }
+                    if !$0.isDirectory && $1.isDirectory { return false }
+                    return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+                }
+
+            DispatchQueue.main.async {
+                self.items = newItems
+            }
+        }
+    }
+
     func navigate(to item: DirectoryItem) -> FileManagerService {
         FileManagerService(startingAt: item.id, documentsURL: documentsURL)
     }
