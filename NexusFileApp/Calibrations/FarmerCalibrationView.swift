@@ -28,7 +28,7 @@ struct FarmerCalibrationView: View {
             }
         }
         .navigationTitle(farmer.name)
-        .toolbar {
+        .toolbar(content: {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("New Trekker") {
                     store.addRecommendation(to: farmer)
@@ -46,7 +46,7 @@ struct FarmerCalibrationView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 EditButton()
             }
-        }
+        })
         .safeAreaInset(edge: .bottom) {
             CreateExcelButton(farmer: farmer, store: store)
                 .padding([.horizontal, .bottom])
@@ -181,7 +181,7 @@ struct AddHeaderSheet: View {
                 }
             }
             .navigationTitle("Add Header")
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
                         onAdd(text, count)
@@ -192,7 +192,7 @@ struct AddHeaderSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-            }
+            })
         }
     }
 }
