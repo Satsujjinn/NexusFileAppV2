@@ -10,51 +10,54 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 class ShareViewController: UIViewController {
-    var sharedURL: URL?
+    var sharedURLs: [URL] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Grab the first incoming item
-        guard let item = extensionContext?
-                .inputItems
-                .first as? NSExtensionItem,
-              let provider = item.attachments?.first else {
-            return
-        }
-
-        // Pick a single UTI that we support
         let supportedUTIs = [
             UTType.pdf.identifier,
             UTType.spreadsheet.identifier,
             UTType.data.identifier
         ]
-        // Find the first matching UTI the provider offers
-        let typeIdentifier = provider.registeredTypeIdentifiers
-            .first { supportedUTIs.contains($0) }
-            ?? UTType.data.identifier
 
-        // Load the file representation for that one UTI
-        provider.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, error in
-            guard let url = url else { return }
-            // Copy into a temp location
-            let tmpURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent(url.lastPathComponent)
-            try? FileManager.default.removeItem(at: tmpURL)
-            try? FileManager.default.copyItem(at: url, to: tmpURL)
+        let group = DispatchGroup()
+        if let items = extensionContext?.inputItems as? [NSExtensionItem] {
+            for item in items {
+                if let providers = item.attachments {
+                    for provider in providers {
+                        group.enter()
+                        let typeIdentifier = provider.registeredTypeIdentifiers
+                            .first { supportedUTIs.contains($0) } ?? UTType.data.identifier
+                        provider.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, _ in
+                            if let url = url {
+                                let tmpURL = FileManager.default.temporaryDirectory
+                                    .appendingPathComponent(url.lastPathComponent)
+                                try? FileManager.default.removeItem(at: tmpURL)
+                                try? FileManager.default.copyItem(at: url, to: tmpURL)
+                                self.sharedURLs.append(tmpURL)
+                            }
+                            group.leave()
+                        }
+                    }
+                }
+            }
+        }
 
-            self.sharedURL = tmpURL
-            DispatchQueue.main.async {
+        group.notify(queue: .main) {
+            if !self.sharedURLs.isEmpty {
                 self.presentShareUI()
+            } else {
+                self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
             }
         }
     }
 
     private func presentShareUI() {
-        guard let fileURL = sharedURL else { return }
+        guard !sharedURLs.isEmpty else { return }
         // Wrap your SwiftUI ShareContentView
         let content = ShareContentView(
-            sharedURL: fileURL,
-            onSave: { folder, name in
+            sharedURLs: sharedURLs,
+            onSave: { fileURL, folder, name in
                 try? SharedFileManager.save(file: fileURL, to: folder, named: name)
                 return SharedFileManager.documentsURL
                     .appendingPathComponent(folder, isDirectory: true)

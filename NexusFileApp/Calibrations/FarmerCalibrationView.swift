@@ -4,16 +4,20 @@ struct FarmerCalibrationView: View {
     let farmer: Farmer
     @ObservedObject var store: CalibrationStore
     @State private var showAddHeader = false
+    @State private var showRename = false
 
     var body: some View {
         List {
             let recs = store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []
-            ForEach(Array(recs.enumerated()), id: \.element.id) { index, rec in
+            var num = 0
+            ForEach(recs, id: \.id) { rec in
                 if let header = rec.header {
+                    num = 0
                     Text(header)
                         .font(.headline)
                 } else {
-                    RecommendationRow(index: index + 1, rec: binding(for: rec))
+                    num += 1
+                    RecommendationRow(index: num, rec: binding(for: rec))
                 }
             }
             .onDelete { indexSet in
@@ -31,6 +35,9 @@ struct FarmerCalibrationView: View {
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Rename") { showRename = true }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Add Header") { showAddHeader = true }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -45,8 +52,13 @@ struct FarmerCalibrationView: View {
                 .padding([.horizontal, .bottom])
         }
         .sheet(isPresented: $showAddHeader) {
-            AddHeaderSheet { text in
-                store.addHeader(text, to: farmer)
+            AddHeaderSheet { text, cnt in
+                store.addHeader(text, count: cnt, to: farmer)
+            }
+        }
+        .sheet(isPresented: $showRename) {
+            RenameFarmerSheet(farmer: farmer) { newName in
+                store.rename(farmer: farmer, to: newName)
             }
         }
     }
@@ -98,6 +110,7 @@ struct SaveButton: View {
     @State private var showOptions = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showSuccess = false
 
     var body: some View {
         Button(action: { showOptions = true }) {
@@ -107,13 +120,16 @@ struct SaveButton: View {
             Button("Excel (.csv)") { export(type: .csv) }
             Button("PDF (.pdf)") { export(type: .pdf) }
         }
-        .sheet(item: $shareURL) { url in
+        .sheet(item: $shareURL, onDismiss: { showSuccess = true }) { url in
             ShareSheet(activityItems: [url])
         }
         .alert("Export Failed", isPresented: $showError) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(errorMessage)
+        }
+        .alert("Export Saved", isPresented: $showSuccess) {
+            Button("OK", role: .cancel) { }
         }
     }
 
@@ -153,18 +169,22 @@ extension UIApplication {
 struct AddHeaderSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
-    var onAdd: (String) -> Void
+    @State private var count: Int = 0
+    var onAdd: (String, Int) -> Void
 
     var body: some View {
         NavigationStack {
             Form {
                 TextField("Header", text: $text)
+                Stepper(value: $count, in: 0...20) {
+                    Text("Blank Tractors: \(count)")
+                }
             }
             .navigationTitle("Add Header")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
-                        onAdd(text)
+                        onAdd(text, count)
                         dismiss()
                     }
                     .disabled(text.isEmpty)
@@ -183,6 +203,7 @@ struct CreateExcelButton: View {
     @State private var shareURL: URL?
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showSuccess = false
 
     var body: some View {
         Button("Create Excel File") {
@@ -190,13 +211,16 @@ struct CreateExcelButton: View {
         }
         .frame(maxWidth: .infinity)
         .buttonStyle(.borderedProminent)
-        .sheet(item: $shareURL) { url in
+        .sheet(item: $shareURL, onDismiss: { showSuccess = true }) { url in
             ShareSheet(activityItems: [url])
         }
         .alert("Export Failed", isPresented: $showError) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(errorMessage)
+        }
+        .alert("Export Saved", isPresented: $showSuccess) {
+            Button("OK", role: .cancel) { }
         }
     }
 

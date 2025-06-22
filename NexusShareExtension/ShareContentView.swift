@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct ShareContentView: View {
-    let sharedURL: URL
-    var onSave: (String, String) -> URL?
+    let sharedURLs: [URL]
+    var onSave: (URL, String, String) -> URL?
     var onOpen: (URL) -> Void
 
     @State private var chosenFolder = ""
@@ -23,7 +23,9 @@ struct ShareContentView: View {
         NavigationStack {
             FolderPickerView(subpath: "") { folder in
                 chosenFolder = folder
-                fileName = sharedURL.lastPathComponent
+                if sharedURLs.count == 1 {
+                    fileName = sharedURLs.first?.lastPathComponent ?? ""
+                }
             }
             .id(refreshID)
             .toolbar {
@@ -39,18 +41,28 @@ struct ShareContentView: View {
             if !chosenFolder.isEmpty {
                 Form {
                     Section(header: Text("Gids: \(chosenFolder)")) { }
-                    Section(header: Text("Naam")) {
-                        TextField(sharedURL.lastPathComponent, text: $fileName)
+                    if sharedURLs.count == 1 {
+                        Section(header: Text("Naam")) {
+                            TextField(sharedURLs[0].lastPathComponent, text: $fileName)
+                        }
+                    } else {
+                        Section {
+                            Text("\(sharedURLs.count) files will be saved")
+                        }
                     }
                     Section {
-                        Button("Stoor Lêer") {
-                            if let dest = onSave(
-                                chosenFolder,
-                                fileName.isEmpty ? sharedURL.lastPathComponent : fileName
-                            ) {
-                                savedURL = dest
-                                showSuccess = true
+                        Button("Stoor L\u00eer") {
+                            if sharedURLs.count == 1 {
+                                if let dest = onSave(sharedURLs[0], chosenFolder, fileName.isEmpty ? sharedURLs[0].lastPathComponent : fileName) {
+                                    savedURL = dest
+                                }
+                            } else {
+                                for url in sharedURLs {
+                                    _ = onSave(url, chosenFolder, url.lastPathComponent)
+                                }
+                                savedURL = SharedFileManager.documentsURL.appendingPathComponent(chosenFolder, isDirectory: true)
                             }
+                            showSuccess = true
                         }
                     }
                 }
