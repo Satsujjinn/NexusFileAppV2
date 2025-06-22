@@ -51,7 +51,7 @@ struct ShareContentView: View {
                         }
                     }
                     Section {
-                        Button("Stoor L\u00eer") {
+                        Button("Stoor L\u{00EA}er") {
                             if sharedURLs.count == 1 {
                                 if let dest = onSave(sharedURLs[0], chosenFolder, fileName.isEmpty ? sharedURLs[0].lastPathComponent : fileName) {
                                     savedURL = dest
