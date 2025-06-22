@@ -4,13 +4,23 @@ import PDFKit
 
 struct CalibrationTests {
     @Test func farmerCRUD() async throws {
-        let store = CalibrationStore(documentsURL: FileManager.default.temporaryDirectory)
+        let docs = FileManager.default.temporaryDirectory
+        let store = CalibrationStore(documentsURL: docs)
         store.addFarmer(named: "John")
         store.addFarmer(named: "Adam")
         #expect(store.farmers.first?.name == "Adam")
         let farmer = store.farmers[0]
+
+        // create folder to verify rename
+        let base = docs.appendingPathComponent("Calibration Sheets", isDirectory: true)
+        let oldURL = base.appendingPathComponent("John", isDirectory: true)
+        try? FileManager.default.createDirectory(at: oldURL, withIntermediateDirectories: true)
+
         store.rename(farmer: farmer, to: "Zack")
         #expect(store.farmers.last?.name == "Zack")
+        let newURL = base.appendingPathComponent("Zack", isDirectory: true)
+        #expect(FileManager.default.fileExists(atPath: newURL.path))
+        try? FileManager.default.removeItem(at: base)
         store.duplicate(farmer: store.farmers[0])
         #expect(store.farmers.count == 3)
         store.moveFarmers(at: IndexSet(integer: 0), to: 2)
