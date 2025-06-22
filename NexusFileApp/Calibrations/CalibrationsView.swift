@@ -28,6 +28,9 @@ struct CalibrationsView: View {
                     Button("Delete", role: .destructive) {
                         store.delete(farmer: farmer)
                     }
+                    Button("Rename") {
+                        renameTarget = farmer
+                    }
                 }
             }
             .onMove { indices, newOffset in
