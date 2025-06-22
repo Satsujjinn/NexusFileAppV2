@@ -45,11 +45,15 @@ struct FarmerCalibrationView: View {
         .navigationBarItems(
             leading: EditButton(),
             trailing: HStack {
-                Button("New Trekker") {
+                Button("New") {
                     store.addRecommendation(to: currentFarmer)
                 }
-                Button("Rename") { showRename = true }
-                Button("Add Header") { showAddHeader = true }
+                Button("Rename") {}
+                    .onLongPressGesture { showRename = true }
+                Button("Add") { showAddHeader = true }
+                Button("Delete", role: .destructive) {
+                    store.delete(farmer: currentFarmer)
+                }
                 SaveButton(farmer: farmer, store: store)
             }
         )
