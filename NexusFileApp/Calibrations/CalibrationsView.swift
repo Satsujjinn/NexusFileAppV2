@@ -35,10 +35,10 @@ struct CalibrationsView: View {
             }
         }
         .navigationTitle("Calibration Sheets")
-        .toolbar {
+        .toolbar(content: {
             EditButton()
             Button("Add Farmer") { showingAdd = true }
-        }
+        })
         .sheet(isPresented: $showingAdd) {
             AddFarmerSheet { name in
                 store.addFarmer(named: name)
@@ -63,7 +63,7 @@ struct AddFarmerSheet: View {
                 TextField("Farmer Name", text: $name)
             }
             .navigationTitle("Add Farmer")
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
                         onAdd(name)
@@ -74,7 +74,7 @@ struct AddFarmerSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-            }
+            })
         }
     }
 }
@@ -97,7 +97,7 @@ struct RenameFarmerSheet: View {
                 TextField("Farmer Name", text: $name)
             }
             .navigationTitle("Rename Farmer")
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         onRename(name)
@@ -108,7 +108,7 @@ struct RenameFarmerSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-            }
+            })
         }
     }
 }

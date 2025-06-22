@@ -20,14 +20,14 @@ struct ImportFileView: View {
                 fileName = fileURL.lastPathComponent
             }
             .id(refreshID)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("New Folder") {
                         showingNewFolder = true
                     }
                     .disabled(chosenFolder.isEmpty)
                 }
-            }
+            })
 
             if !chosenFolder.isEmpty {
                 Form {
