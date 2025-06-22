@@ -29,9 +29,11 @@ class CalibrationStore: ObservableObject {
     @Published private(set) var farmers: [Farmer] = []
 
     private let saveURL: URL
+    private let documentsURL: URL
 
     init(documentsURL: URL = SharedFileManager.shared.documentsURL) {
         self.saveURL = documentsURL.appendingPathComponent("calibrations.json")
+        self.documentsURL = documentsURL
         load()
         sortFarmers()
     }
@@ -45,9 +47,19 @@ class CalibrationStore: ObservableObject {
 
     func rename(farmer: Farmer, to newName: String) {
         guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        let oldName = farmers[idx].name
         farmers[idx].name = newName
         sortFarmers()
         save()
+
+        let fm = FileManager.default
+        let base = documentsURL
+            .appendingPathComponent("Calibration Sheets", isDirectory: true)
+        let oldURL = base.appendingPathComponent(oldName, isDirectory: true)
+        let newURL = base.appendingPathComponent(newName, isDirectory: true)
+        if fm.fileExists(atPath: oldURL.path) {
+            try? fm.moveItem(at: oldURL, to: newURL)
+        }
     }
 
     func delete(farmer: Farmer) {
