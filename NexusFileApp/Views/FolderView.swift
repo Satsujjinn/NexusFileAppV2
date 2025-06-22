@@ -58,7 +58,7 @@ struct FolderView: View {
         .searchable(text: $searchText,
                     placement: .navigationBarDrawer(displayMode: .always))
         .navigationTitle(title)
-        .toolbar {
+        .toolbar(content: {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
                     Button("New Folder") { showingNewFolder = true }
@@ -73,7 +73,7 @@ struct FolderView: View {
                         .font(.system(size: 22))
                 }
             }
-        }
+        })
         .sheet(isPresented: $showingNewFolder) {
             NewFolderSheet(title: "New Folder", placeholder: "Name") { name in
                 service.createFolder(named: name)
