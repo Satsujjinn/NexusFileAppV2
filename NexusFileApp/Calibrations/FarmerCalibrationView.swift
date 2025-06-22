@@ -53,9 +53,6 @@ struct FarmerCalibrationView: View {
                     store.addRecommendation(to: currentFarmer)
                 }
                 Button("Add") { showAddHeader = true }
-                Button("Delete", role: .destructive) {
-                    store.delete(farmer: currentFarmer)
-                }
                 SaveButton(farmer: farmer, store: store)
             }
         )
