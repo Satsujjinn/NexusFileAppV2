@@ -22,6 +22,7 @@ When a PDF or Excel file is opened from another app (Mail, Files, WhatsApp, etc.
 * Save calibration data to CSV or PDF files with sub headers preserved
 * Light and Dark mode with custom branding colors
 * Sync files with iCloud and back them up with one tap
+* Faster folder loading thanks to background processing
 
 ## Screenshots
 
