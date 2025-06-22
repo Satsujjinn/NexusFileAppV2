@@ -74,11 +74,16 @@ class CalibrationStore: ObservableObject {
         save()
     }
 
-    func addHeader(_ text: String, to farmer: Farmer) {
+    func addHeader(_ text: String, count: Int, to farmer: Farmer) {
         guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        var items: [Recommendation] = []
         var header = Recommendation()
         header.header = text
-        farmers[idx].recommendations.insert(header, at: 0)
+        items.append(header)
+        if count > 0 {
+            for _ in 0..<count { items.append(Recommendation()) }
+        }
+        farmers[idx].recommendations.insert(contentsOf: items, at: 0)
         save()
     }
 
