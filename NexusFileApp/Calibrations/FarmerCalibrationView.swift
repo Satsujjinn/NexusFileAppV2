@@ -9,9 +9,11 @@ struct FarmerCalibrationView: View {
     }
     @State private var showAddHeader = false
     @State private var showRename = false
+    @State private var selection = Set<UUID>()
+    @Environment(\.editMode) private var editMode
 
     var body: some View {
-        List {
+        List(selection: $selection) {
             let recs = store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []
             let enumerated: [(Recommendation, Int?)] = {
                 var count = 0
@@ -45,6 +47,12 @@ struct FarmerCalibrationView: View {
         .navigationBarItems(
             leading: EditButton(),
             trailing: HStack {
+                if editMode?.wrappedValue == .active && !selection.isEmpty {
+                    Button("Delete Selected", role: .destructive) {
+                        store.deleteRecommendations(with: selection, from: currentFarmer)
+                        selection.removeAll()
+                    }
+                }
                 Button("New") {
                     store.addRecommendation(to: currentFarmer)
                 }

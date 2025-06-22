@@ -112,6 +112,12 @@ class CalibrationStore: ObservableObject {
         save()
     }
 
+    func deleteRecommendations(with ids: Set<UUID>, from farmer: Farmer) {
+        guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
+        farmers[idx].recommendations.removeAll { ids.contains($0.id) }
+        save()
+    }
+
     func moveRecommendations(at offsets: IndexSet, to newOffset: Int, for farmer: Farmer) {
         guard let idx = farmers.firstIndex(where: { $0.id == farmer.id }) else { return }
         farmers[idx].recommendations.move(fromOffsets: offsets, toOffset: newOffset)
