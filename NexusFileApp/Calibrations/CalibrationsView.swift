@@ -35,10 +35,12 @@ struct CalibrationsView: View {
             }
         }
         .navigationTitle("Calibration Sheets")
-        .toolbar(content: {
-            EditButton()
-            Button("Add Farmer") { showingAdd = true }
-        })
+        .navigationBarItems(
+            trailing: HStack {
+                EditButton()
+                Button("Add Farmer") { showingAdd = true }
+            }
+        )
         .sheet(isPresented: $showingAdd) {
             AddFarmerSheet { name in
                 store.addFarmer(named: name)
@@ -63,18 +65,14 @@ struct AddFarmerSheet: View {
                 TextField("Farmer Name", text: $name)
             }
             .navigationTitle("Add Farmer")
-            .toolbar(content: {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") {
-                        onAdd(name)
-                        dismiss()
-                    }
-                    .disabled(name.isEmpty)
+            .navigationBarItems(
+                leading: Button("Cancel") { dismiss() },
+                trailing: Button("Add") {
+                    onAdd(name)
+                    dismiss()
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            })
+                .disabled(name.isEmpty)
+            )
         }
     }
 }
@@ -97,18 +95,14 @@ struct RenameFarmerSheet: View {
                 TextField("Farmer Name", text: $name)
             }
             .navigationTitle("Rename Farmer")
-            .toolbar(content: {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        onRename(name)
-                        dismiss()
-                    }
-                    .disabled(name.isEmpty)
+            .navigationBarItems(
+                leading: Button("Cancel") { dismiss() },
+                trailing: Button("Save") {
+                    onRename(name)
+                    dismiss()
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            })
+                .disabled(name.isEmpty)
+            )
         }
     }
 }
