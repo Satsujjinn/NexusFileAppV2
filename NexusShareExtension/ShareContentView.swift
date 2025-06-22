@@ -28,14 +28,12 @@ struct ShareContentView: View {
                 }
             }
             .id(refreshID)
-            .toolbar(content: {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Maak Submap") {
-                        showingNewFolder = true
-                    }
-                    .disabled(chosenFolder.isEmpty)
+            .navigationBarItems(
+                trailing: Button("Maak Submap") {
+                    showingNewFolder = true
                 }
-            })
+                .disabled(chosenFolder.isEmpty)
+            )
 
             // Once a folder is chosen, show name & Save
             if !chosenFolder.isEmpty {

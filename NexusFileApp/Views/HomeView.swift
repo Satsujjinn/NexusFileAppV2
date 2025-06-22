@@ -55,8 +55,8 @@ struct HomeView: View {
             .background(Color.nexusBackground.ignoresSafeArea())
             .navigationTitle("Categories")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar(content: {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
+            .navigationBarItems(
+                trailing: HStack {
                     Button { fm.syncFromICloud() } label: {
                         Image(systemName: "arrow.triangle.2.circlepath")
                     }
@@ -68,7 +68,7 @@ struct HomeView: View {
                             .font(.system(size: 22))
                     }
                 }
-            })
+            )
             .sheet(isPresented: $showingNew) {
                 NewFolderSheet(
                     title: "New Category",

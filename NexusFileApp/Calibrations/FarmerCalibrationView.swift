@@ -28,25 +28,17 @@ struct FarmerCalibrationView: View {
             }
         }
         .navigationTitle(farmer.name)
-        .toolbar(content: {
-            ToolbarItem(placement: .navigationBarTrailing) {
+        .navigationBarItems(
+            leading: EditButton(),
+            trailing: HStack {
                 Button("New Trekker") {
                     store.addRecommendation(to: farmer)
                 }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Rename") { showRename = true }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Add Header") { showAddHeader = true }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
                 SaveButton(farmer: farmer, store: store)
             }
-            ToolbarItem(placement: .navigationBarLeading) {
-                EditButton()
-            }
-        })
+        )
         .safeAreaInset(edge: .bottom) {
             CreateExcelButton(farmer: farmer, store: store)
                 .padding([.horizontal, .bottom])
@@ -181,18 +173,14 @@ struct AddHeaderSheet: View {
                 }
             }
             .navigationTitle("Add Header")
-            .toolbar(content: {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") {
-                        onAdd(text, count)
-                        dismiss()
-                    }
-                    .disabled(text.isEmpty)
+            .navigationBarItems(
+                leading: Button("Cancel") { dismiss() },
+                trailing: Button("Add") {
+                    onAdd(text, count)
+                    dismiss()
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            })
+                .disabled(text.isEmpty)
+            )
         }
     }
 }

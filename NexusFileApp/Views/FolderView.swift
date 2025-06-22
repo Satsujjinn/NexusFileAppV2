@@ -58,22 +58,20 @@ struct FolderView: View {
         .searchable(text: $searchText,
                     placement: .navigationBarDrawer(displayMode: .always))
         .navigationTitle(title)
-        .toolbar(content: {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    Button("New Folder") { showingNewFolder = true }
-                    Button("Import File") { showingImporter = true }
-                    Divider()
-                    Picker("Sort by", selection: $sortMode) {
-                        Label("Name", systemImage: "textformat").tag(SortMode.name)
-                        Label("Date", systemImage: "calendar").tag(SortMode.date)
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 22))
+        .navigationBarItems(
+            trailing: Menu {
+                Button("New Folder") { showingNewFolder = true }
+                Button("Import File") { showingImporter = true }
+                Divider()
+                Picker("Sort by", selection: $sortMode) {
+                    Label("Name", systemImage: "textformat").tag(SortMode.name)
+                    Label("Date", systemImage: "calendar").tag(SortMode.date)
                 }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .font(.system(size: 22))
             }
-        })
+        )
         .sheet(isPresented: $showingNewFolder) {
             NewFolderSheet(title: "New Folder", placeholder: "Name") { name in
                 service.createFolder(named: name)
