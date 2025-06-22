@@ -8,7 +8,6 @@ struct FarmerCalibrationView: View {
         store.farmers.first(where: { $0.id == farmer.id }) ?? farmer
     }
     @State private var showAddHeader = false
-    @State private var showRename = false
     @State private var selection = Set<UUID>()
     @Environment(\.editMode) private var editMode
 
@@ -36,9 +35,6 @@ struct FarmerCalibrationView: View {
                     RecommendationRow(index: idx, rec: binding(for: rec))
                 }
             }
-            .onDelete { indexSet in
-                store.deleteRecommendations(at: indexSet, from: currentFarmer)
-            }
             .onMove { indices, newOffset in
                 store.moveRecommendations(at: indices, to: newOffset, for: currentFarmer)
             }
@@ -56,8 +52,6 @@ struct FarmerCalibrationView: View {
                 Button("New") {
                     store.addRecommendation(to: currentFarmer)
                 }
-                Button("Rename") {}
-                    .onLongPressGesture { showRename = true }
                 Button("Add") { showAddHeader = true }
                 Button("Delete", role: .destructive) {
                     store.delete(farmer: currentFarmer)
@@ -72,11 +66,6 @@ struct FarmerCalibrationView: View {
         .sheet(isPresented: $showAddHeader) {
             AddHeaderSheet { text, cnt in
                 store.addHeader(text, count: cnt, to: currentFarmer)
-            }
-        }
-        .sheet(isPresented: $showRename) {
-            RenameFarmerSheet(farmer: currentFarmer) { newName in
-                store.rename(farmer: currentFarmer, to: newName)
             }
         }
     }
