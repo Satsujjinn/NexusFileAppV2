@@ -12,7 +12,7 @@ struct CalibrationTests {
         let farmer = store.farmers[0]
 
         // create folder to verify rename
-        let base = docs.appendingPathComponent("Calibration Sheets", isDirectory: true)
+        let base = docs.appendingPathComponent("Saved", isDirectory: true)
         let oldURL = base.appendingPathComponent("John", isDirectory: true)
         try? FileManager.default.createDirectory(at: oldURL, withIntermediateDirectories: true)
 

@@ -84,25 +84,33 @@ struct RecommendationRow: View {
     @Binding var rec: Recommendation
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                Text("\(index)")
-                    .frame(width: 30)
+        GeometryReader { geo in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    Text("\(index)")
+                        .frame(width: 30)
 
-                TextField("TREKKER", text: $rec.trekker)
-                    .frame(width: 120)
-                TextField("RAT", text: $rec.rat)
-                    .frame(width: 60)
-                TextField("REVS", text: $rec.revs)
-                    .frame(width: 60)
-                TextField("TYD OOR TOETSAFSTAND", text: $rec.tyd)
-                    .frame(width: 160)
-                TextField("POMP", text: $rec.pomp)
-                    .frame(width: 60)
-                TextField("DRUK", text: $rec.druk)
-                    .frame(width: 60)
+                    let total = geo.size.width - 30
+                    let trekkerWidth = max(total * 0.25, 120)
+                    let smallWidth = max(total * 0.125, 60)
+                    let longWidth = max(total * 0.3, 160)
+
+                    TextField("TREKKER", text: $rec.trekker)
+                        .frame(width: trekkerWidth)
+                    TextField("RAT", text: $rec.rat)
+                        .frame(width: smallWidth)
+                    TextField("REVS", text: $rec.revs)
+                        .frame(width: smallWidth)
+                    TextField("TYD OOR TOETSAFSTAND", text: $rec.tyd)
+                        .frame(width: longWidth)
+                    TextField("POMP", text: $rec.pomp)
+                        .frame(width: smallWidth)
+                    TextField("DRUK", text: $rec.druk)
+                        .frame(width: smallWidth)
+                }
             }
         }
+        .frame(height: 40)
         .textFieldStyle(BlackBorderTextFieldStyle())
     }
 }

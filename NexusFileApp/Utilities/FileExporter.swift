@@ -22,7 +22,7 @@ enum FileExporterError: LocalizedError {
 struct FileExporter {
     static func export(farmer: Farmer, format: ExportFormat) throws -> URL {
         let folder = SharedFileManager.shared.documentsURL
-            .appendingPathComponent("Calibration Sheets", isDirectory: true)
+            .appendingPathComponent("Saved", isDirectory: true)
             .appendingPathComponent(farmer.name, isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         var filename = "\(farmer.name)_Trekker Inligting_\(dateFormatter.string(from: Date()))"

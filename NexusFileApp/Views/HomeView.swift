@@ -28,7 +28,7 @@ struct HomeView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     NavigationLink(destination: CalibrationsView()) {
-                        CategoryCard(name: "Calibration Sheets")
+                        CategoryCard(name: "Calibration Equipment")
                     }
                     .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
 
