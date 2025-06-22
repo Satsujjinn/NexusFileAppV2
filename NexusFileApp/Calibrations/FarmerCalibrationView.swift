@@ -9,15 +9,25 @@ struct FarmerCalibrationView: View {
     var body: some View {
         List {
             let recs = store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []
-            var num = 0
-            ForEach(recs, id: \.id) { rec in
+            let enumerated: [(Recommendation, Int?)] = {
+                var count = 0
+                return recs.map { rec in
+                    if rec.isHeader {
+                        count = 0
+                        return (rec, nil)
+                    } else {
+                        count += 1
+                        return (rec, count)
+                    }
+                }
+            }()
+            ForEach(enumerated, id: \.0.id) { item in
+                let rec = item.0
                 if let header = rec.header {
-                    num = 0
                     Text(header)
                         .font(.headline)
-                } else {
-                    num += 1
-                    RecommendationRow(index: num, rec: binding(for: rec))
+                } else if let idx = item.1 {
+                    RecommendationRow(index: idx, rec: binding(for: rec))
                 }
             }
             .onDelete { indexSet in
