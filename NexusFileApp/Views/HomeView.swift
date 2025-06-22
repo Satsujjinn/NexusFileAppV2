@@ -16,10 +16,12 @@ struct HomeView: View {
     @State private var navigateService: FileManagerService?
     @State private var showSavedAlert = false
 
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    private var columns: [GridItem] {
+        let count = verticalSizeClass == .compact ? 3 : 2
+        return Array(repeating: GridItem(.flexible()), count: count)
+    }
 
     var body: some View {
         NavigationStack {

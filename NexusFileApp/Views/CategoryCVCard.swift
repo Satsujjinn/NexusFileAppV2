@@ -26,6 +26,9 @@ struct CategoryCVCard: View {
         )
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityLabel(Text("\(name) folder"))
     }
 }
 
