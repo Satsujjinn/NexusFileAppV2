@@ -14,12 +14,12 @@ class FileManagerService: ObservableObject {
     private let documentsURL: URL
     private(set) var currentURL: URL
 
-    /// Your six required top-level categories in English
+    /// Your top-level categories
     private let defaultCategories = [
         "Spray Programs",
         "MRL",
         "Labels",
-        "Calibration Sheets",
+        "Saved",
         "Recommendations",
         "Crop Info"
     ]
@@ -41,7 +41,8 @@ class FileManagerService: ObservableObject {
         }
 
         let migrations = [
-            (old: "Calibrations", new: "Calibration Sheets"),
+            (old: "Calibrations", new: "Saved"),
+            (old: "Calibration Sheets", new: "Saved"),
             (old: "Crop Information", new: "Crop Info")
         ]
 

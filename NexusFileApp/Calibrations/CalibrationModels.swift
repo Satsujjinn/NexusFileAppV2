@@ -54,7 +54,7 @@ class CalibrationStore: ObservableObject {
 
         let fm = FileManager.default
         let base = documentsURL
-            .appendingPathComponent("Calibration Sheets", isDirectory: true)
+            .appendingPathComponent("Saved", isDirectory: true)
         let oldURL = base.appendingPathComponent(oldName, isDirectory: true)
         let newURL = base.appendingPathComponent(newName, isDirectory: true)
         if fm.fileExists(atPath: oldURL.path) {

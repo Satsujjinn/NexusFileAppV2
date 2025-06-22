@@ -31,7 +31,7 @@ struct CalibrationsView: View {
                 store.moveFarmers(at: indices, to: newOffset)
             }
         }
-        .navigationTitle("Calibration Sheets")
+        .navigationTitle("Calibration Equipment")
         .navigationBarItems(
             trailing: HStack {
                 EditButton()
