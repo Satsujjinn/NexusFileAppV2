@@ -3,6 +3,10 @@ import SwiftUI
 struct FarmerCalibrationView: View {
     let farmer: Farmer
     @ObservedObject var store: CalibrationStore
+    /// Latest copy of the farmer from the store if available
+    private var currentFarmer: Farmer {
+        store.farmers.first(where: { $0.id == farmer.id }) ?? farmer
+    }
     @State private var showAddHeader = false
     @State private var showRename = false
 
@@ -31,18 +35,18 @@ struct FarmerCalibrationView: View {
                 }
             }
             .onDelete { indexSet in
-                store.deleteRecommendations(at: indexSet, from: farmer)
+                store.deleteRecommendations(at: indexSet, from: currentFarmer)
             }
             .onMove { indices, newOffset in
-                store.moveRecommendations(at: indices, to: newOffset, for: farmer)
+                store.moveRecommendations(at: indices, to: newOffset, for: currentFarmer)
             }
         }
-        .navigationTitle(farmer.name)
+        .navigationTitle(currentFarmer.name)
         .navigationBarItems(
             leading: EditButton(),
             trailing: HStack {
                 Button("New Trekker") {
-                    store.addRecommendation(to: farmer)
+                    store.addRecommendation(to: currentFarmer)
                 }
                 Button("Rename") { showRename = true }
                 Button("Add Header") { showAddHeader = true }
@@ -55,12 +59,12 @@ struct FarmerCalibrationView: View {
         }
         .sheet(isPresented: $showAddHeader) {
             AddHeaderSheet { text, cnt in
-                store.addHeader(text, count: cnt, to: farmer)
+                store.addHeader(text, count: cnt, to: currentFarmer)
             }
         }
         .sheet(isPresented: $showRename) {
-            RenameFarmerSheet(farmer: farmer) { newName in
-                store.rename(farmer: farmer, to: newName)
+            RenameFarmerSheet(farmer: currentFarmer) { newName in
+                store.rename(farmer: currentFarmer, to: newName)
             }
         }
     }
@@ -68,10 +72,10 @@ struct FarmerCalibrationView: View {
     private func binding(for rec: Recommendation) -> Binding<Recommendation> {
         Binding(
             get: {
-                store.farmers.first(where: { $0.id == farmer.id })?.recommendations.first(where: { $0.id == rec.id }) ?? rec
+                currentFarmer.recommendations.first(where: { $0.id == rec.id }) ?? rec
             },
             set: { newValue in
-                store.updateRecommendation(newValue, for: farmer)
+                store.updateRecommendation(newValue, for: currentFarmer)
             }
         )
     }
