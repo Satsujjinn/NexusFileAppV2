@@ -36,7 +36,7 @@ struct ClientAanbevelingView: View {
                 }
             }
             .onMove { indices, newOffset in
-                store.moveAanbevelings(at: indices, to: newOffset, for: currentClient)
+                store.moveRecommendations(at: indices, to: newOffset, for: currentClient)
             }
         }
         .navigationTitle(currentClient.name)
@@ -45,7 +45,7 @@ struct ClientAanbevelingView: View {
             trailing: HStack {
                 if editMode?.wrappedValue == .active && !selection.isEmpty {
                     Button("Delete Selected", role: .destructive) {
-                        store.deleteAanbevelings(with: selection, from: currentClient)
+                        store.deleteRecommendations(with: selection, from: currentClient)
                         selection.removeAll()
                     }
                 }
@@ -53,15 +53,15 @@ struct ClientAanbevelingView: View {
                     store.addAanbeveling(to: currentClient)
                 }
                 Button("Add") { showAddHeader = true }
-                SaveButton(client: client, store: store)
+                AanbevelingSaveButton(client: client, store: store)
             }
         )
         .safeAreaInset(edge: .bottom) {
-            CreateExcelButton(client: client, store: store)
+            AanbevelingCreateExcelButton(client: client, store: store)
                 .padding([.horizontal, .bottom])
         }
         .sheet(isPresented: $showAddHeader) {
-            AddHeaderSheet { text, cnt in
+            AanbevelingAddHeaderSheet { text, cnt in
                 store.addHeader(text, count: cnt, to: currentClient)
             }
         }
@@ -117,7 +117,7 @@ struct AanbevelingRow: View {
     }
 }
 
-struct SaveButton: View {
+struct AanbevelingSaveButton: View {
     let client: Client
     @ObservedObject var store: AanbevelingStore
     @State private var shareURL: URL?
@@ -172,7 +172,7 @@ struct SaveButton: View {
 }
 
 extension UIApplication {
-    static func presentShareSheet(url: URL) {
+    static func presentAanbevelingShareSheet(url: URL) {
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let root = scene.windows.first?.rootViewController else { return }
         let av = UIActivityViewController(activityItems: [url], applicationActivities: nil)
@@ -180,7 +180,7 @@ extension UIApplication {
     }
 }
 
-struct AddHeaderSheet: View {
+struct AanbevelingAddHeaderSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
     @State private var count: Int = 0
@@ -207,7 +207,7 @@ struct AddHeaderSheet: View {
     }
 }
 
-struct CreateExcelButton: View {
+struct AanbevelingCreateExcelButton: View {
     let client: Client
     @ObservedObject var store: AanbevelingStore
     @State private var shareURL: URL?
