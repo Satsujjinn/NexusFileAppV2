@@ -32,6 +32,11 @@ struct HomeView: View {
                     }
                     .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
 
+                    NavigationLink(destination: AanbevelingsView()) {
+                        CategoryCard(name: "Aanbevelings")
+                    }
+                    .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
+
                     ForEach(fm.items.filter(\.isDirectory)) { item in
                         NavigationLink(
                             destination: FolderView(

@@ -1,11 +1,11 @@
 import SwiftUI
 
-struct FarmerCalibrationView: View {
-    let farmer: Farmer
-    @ObservedObject var store: CalibrationStore
-    /// Latest copy of the farmer from the store if available
-    private var currentFarmer: Farmer {
-        store.farmers.first(where: { $0.id == farmer.id }) ?? farmer
+struct ClientAanbevelingView: View {
+    let client: Client
+    @ObservedObject var store: AanbevelingStore
+    /// Latest copy of the client from the store if available
+    private var currentClient: Client {
+        store.clients.first(where: { $0.id == client.id }) ?? client
     }
     @State private var showAddHeader = false
     @State private var selection = Set<UUID>()
@@ -13,8 +13,8 @@ struct FarmerCalibrationView: View {
 
     var body: some View {
         List(selection: $selection) {
-            let recs = store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []
-            let enumerated: [(Recommendation, Int?)] = {
+            let recs = store.clients.first(where: { $0.id == client.id })?.aanbevelings ?? []
+            let enumerated: [(Aanbeveling, Int?)] = {
                 var count = 0
                 return recs.map { rec in
                     if rec.isHeader {
@@ -32,56 +32,56 @@ struct FarmerCalibrationView: View {
                     Text(header)
                         .font(.headline)
                 } else if let idx = item.1 {
-                    RecommendationRow(index: idx, rec: binding(for: rec))
+                    AanbevelingRow(index: idx, rec: binding(for: rec))
                 }
             }
             .onMove { indices, newOffset in
-                store.moveRecommendations(at: indices, to: newOffset, for: currentFarmer)
+                store.moveAanbevelings(at: indices, to: newOffset, for: currentClient)
             }
         }
-        .navigationTitle(currentFarmer.name)
+        .navigationTitle(currentClient.name)
         .navigationBarItems(
             leading: EditButton(),
             trailing: HStack {
                 if editMode?.wrappedValue == .active && !selection.isEmpty {
                     Button("Delete Selected", role: .destructive) {
-                        store.deleteRecommendations(with: selection, from: currentFarmer)
+                        store.deleteAanbevelings(with: selection, from: currentClient)
                         selection.removeAll()
                     }
                 }
                 Button("New") {
-                    store.addRecommendation(to: currentFarmer)
+                    store.addAanbeveling(to: currentClient)
                 }
                 Button("Add") { showAddHeader = true }
-                SaveButton(farmer: farmer, store: store)
+                SaveButton(client: client, store: store)
             }
         )
         .safeAreaInset(edge: .bottom) {
-            CreateExcelButton(farmer: farmer, store: store)
+            CreateExcelButton(client: client, store: store)
                 .padding([.horizontal, .bottom])
         }
         .sheet(isPresented: $showAddHeader) {
             AddHeaderSheet { text, cnt in
-                store.addHeader(text, count: cnt, to: currentFarmer)
+                store.addHeader(text, count: cnt, to: currentClient)
             }
         }
     }
 
-    private func binding(for rec: Recommendation) -> Binding<Recommendation> {
+    private func binding(for rec: Aanbeveling) -> Binding<Aanbeveling> {
         Binding(
             get: {
-                currentFarmer.recommendations.first(where: { $0.id == rec.id }) ?? rec
+                currentClient.aanbevelings.first(where: { $0.id == rec.id }) ?? rec
             },
             set: { newValue in
-                store.updateRecommendation(newValue, for: currentFarmer)
+                store.updateAanbeveling(newValue, for: currentClient)
             }
         )
     }
 }
 
-struct RecommendationRow: View {
+struct AanbevelingRow: View {
     let index: Int
-    @Binding var rec: Recommendation
+    @Binding var rec: Aanbeveling
 
     var body: some View {
         GeometryReader { geo in
@@ -91,21 +91,23 @@ struct RecommendationRow: View {
                         .frame(width: 30)
 
                     let total = geo.size.width - 30
+                    let gewasWidth = max(total * 0.22, 120)
                     let smallWidth = max(total * 0.11, 50)
+                    let aktiefWidth = max(total * 0.23, 130)
 
-                    TextField("TREKKER", text: $rec.trekker)
+                    TextField("GEWAS", text: $rec.gewas)
+                        .frame(width: gewasWidth)
+                    TextField("TEKEN", text: $rec.teken)
                         .frame(width: smallWidth)
-                    TextField("RAT", text: $rec.rat)
+                    TextField("PRODUK", text: $rec.produk)
                         .frame(width: smallWidth)
-                    TextField("REVS", text: $rec.revs)
+                    TextField("AKTIEF", text: $rec.aktief)
+                        .frame(width: aktiefWidth)
+                    TextField("DOSIS/LT", text: $rec.dosisLt)
                         .frame(width: smallWidth)
-                    TextField("TYD OOR TOETSAFSTAND", text: $rec.tyd)
+                    TextField("DOSIS/TENK", text: $rec.dosisTenk)
                         .frame(width: smallWidth)
-                    TextField("LT/HA", text: $rec.ltHa)
-                        .frame(width: smallWidth)
-                    TextField("POMP", text: $rec.pomp)
-                        .frame(width: smallWidth)
-                    TextField("DRUK", text: $rec.druk)
+                    TextField("OHP", text: $rec.ohp)
                         .frame(width: smallWidth)
                 }
             }
@@ -116,8 +118,8 @@ struct RecommendationRow: View {
 }
 
 struct SaveButton: View {
-    let farmer: Farmer
-    @ObservedObject var store: CalibrationStore
+    let client: Client
+    @ObservedObject var store: AanbevelingStore
     @State private var shareURL: URL?
     @State private var showOptions = false
     @State private var showError = false
@@ -148,13 +150,13 @@ struct SaveButton: View {
     private enum ExportType { case csv, pdf }
 
     private func export(type: ExportType) {
-        guard let farmerData = store.farmers.first(where: { $0.id == farmer.id }) else {
+        guard let clientData = store.clients.first(where: { $0.id == client.id }) else {
             errorMessage = FileExporterError.missingFarmer.localizedDescription
             showError = true
             return
         }
         do {
-            let url = try FileExporter.export(farmer: farmerData, format: type == .csv ? .csv : .pdf)
+            let url = try AanbevelingExporter.export(client: clientData, format: type == .csv ? .csv : .pdf)
             shareURL = url
         } catch {
             errorMessage = error.localizedDescription
@@ -189,7 +191,7 @@ struct AddHeaderSheet: View {
             Form {
                 TextField("Header", text: $text)
                 Stepper(value: $count, in: 0...20) {
-                    Text("Blank Tractors: \(count)")
+                    Text("Blank Entries: \(count)")
                 }
             }
             .navigationTitle("Add Header")
@@ -206,8 +208,8 @@ struct AddHeaderSheet: View {
 }
 
 struct CreateExcelButton: View {
-    let farmer: Farmer
-    @ObservedObject var store: CalibrationStore
+    let client: Client
+    @ObservedObject var store: AanbevelingStore
     @State private var shareURL: URL?
     @State private var showError = false
     @State private var errorMessage = ""
@@ -233,13 +235,13 @@ struct CreateExcelButton: View {
     }
 
     private func export() {
-        guard let farmerData = store.farmers.first(where: { $0.id == farmer.id }) else {
+        guard let clientData = store.clients.first(where: { $0.id == client.id }) else {
             errorMessage = FileExporterError.missingFarmer.localizedDescription
             showError = true
             return
         }
         do {
-            let url = try FileExporter.export(farmer: farmerData, format: .csv)
+            let url = try AanbevelingExporter.export(client: clientData, format: .csv)
             shareURL = url
         } catch {
             errorMessage = error.localizedDescription
@@ -249,5 +251,5 @@ struct CreateExcelButton: View {
 }
 
 #Preview {
-    FarmerCalibrationView(farmer: Farmer(name: "Sample"), store: CalibrationStore())
+    ClientAanbevelingView(client: Client(name: "Sample"), store: AanbevelingStore())
 }

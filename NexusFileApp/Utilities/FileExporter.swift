@@ -25,7 +25,7 @@ struct FileExporter {
             .appendingPathComponent("Saved", isDirectory: true)
             .appendingPathComponent(farmer.name, isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        var filename = "\(farmer.name)_Trekker Inligting_\(dateFormatter.string(from: Date()))"
+        var filename = "\(farmer.name)_\(dateFormatter.string(from: Date()))"
         switch format {
         case .csv:
             filename += ".csv"
