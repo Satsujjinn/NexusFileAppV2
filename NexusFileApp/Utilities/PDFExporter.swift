@@ -11,7 +11,7 @@ struct PDFExporter {
             var y: CGFloat = 20
             drawCentered("NEXUSAG", at: &y, pageRect: pageRect, underline: true)
             y += 20
-            let columnHeader = "TREKKER,RAT,REVS,TYD,POMP,DRUK"
+            let columnHeader = "TREKKER,RAT,REVS,TYD,LT/HA,POMP,DRUK"
             draw(columnHeader, at: &y, pageRect: pageRect, underline: true)
             for rec in farmer.recommendations {
                 if let header = rec.header {
@@ -24,7 +24,7 @@ struct PDFExporter {
                     y += 20
                     draw(columnHeader, at: &y, pageRect: pageRect, underline: true)
                 } else {
-                    let row = [rec.trekker, rec.rat, rec.revs, rec.tyd, rec.pomp, rec.druk]
+                    let row = [rec.trekker, rec.rat, rec.revs, rec.tyd, rec.ltHa, rec.pomp, rec.druk]
                         .map { $0.replacingOccurrences(of: ",", with: " ") }
                         .joined(separator: ",")
                     if y > pageRect.height - 20 {

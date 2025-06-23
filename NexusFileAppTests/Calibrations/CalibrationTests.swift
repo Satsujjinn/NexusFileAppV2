@@ -44,12 +44,13 @@ struct CalibrationTests {
     @Test func exportCSV() async throws {
         var farmer = Farmer(name: "CSV")
         farmer.recommendations.append(Recommendation(header: "Section 1"))
-        farmer.recommendations.append(Recommendation(trekker: "t", rat: "r", revs: "v", tyd: "t", pomp: "p", druk: "d"))
+        farmer.recommendations.append(Recommendation(trekker: "t", rat: "r", revs: "v", tyd: "t", ltHa: "1", pomp: "p", druk: "d"))
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("test.csv")
         try? CSVExporter.export(farmer: farmer, to: file)
         let contents = (try? String(contentsOf: file)) ?? ""
         #expect(contents.contains("Section 1"))
         #expect(contents.contains("NEXUSAG"))
+        #expect(contents.contains("LT/HA"))
     }
 
     @Test func exportPDF() async throws {
@@ -61,5 +62,6 @@ struct CalibrationTests {
         let doc = PDFDocument(url: file)
         #expect(doc?.string?.contains("Header A") == true)
         #expect(doc?.string?.contains("NEXUSAG") == true)
+        #expect(doc?.string?.contains("LT/HA") == true)
     }
 }

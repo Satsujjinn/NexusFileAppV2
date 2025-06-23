@@ -91,9 +91,9 @@ struct RecommendationRow: View {
                         .frame(width: 30)
 
                     let total = geo.size.width - 30
-                    let trekkerWidth = max(total * 0.25, 120)
-                    let smallWidth = max(total * 0.125, 60)
-                    let longWidth = max(total * 0.3, 160)
+                    let trekkerWidth = max(total * 0.22, 120)
+                    let smallWidth = max(total * 0.11, 50)
+                    let tydWidth = max(total * 0.23, 130)
 
                     TextField("TREKKER", text: $rec.trekker)
                         .frame(width: trekkerWidth)
@@ -102,7 +102,9 @@ struct RecommendationRow: View {
                     TextField("REVS", text: $rec.revs)
                         .frame(width: smallWidth)
                     TextField("TYD OOR TOETSAFSTAND", text: $rec.tyd)
-                        .frame(width: longWidth)
+                        .frame(width: tydWidth)
+                    TextField("LT/HA", text: $rec.ltHa)
+                        .frame(width: smallWidth)
                     TextField("POMP", text: $rec.pomp)
                         .frame(width: smallWidth)
                     TextField("DRUK", text: $rec.druk)

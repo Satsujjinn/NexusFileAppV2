@@ -10,6 +10,8 @@ struct Recommendation: Identifiable, Codable {
     var rat: String = ""
     var revs: String = ""
     var tyd: String = ""
+    /// Liters per hectare value
+    var ltHa: String = ""
     var pomp: String = ""
     var druk: String = ""
 
