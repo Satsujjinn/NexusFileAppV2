@@ -17,13 +17,7 @@ struct CategoryCVCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity, minHeight: 120)
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [Color.white, Color.nexusGreen.opacity(0.15)]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .background(Color.nexusGreen.opacity(0.15))
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
         .accessibilityElement(children: .combine)
