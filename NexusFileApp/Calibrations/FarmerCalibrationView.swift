@@ -219,6 +219,7 @@ struct CreateExcelButton: View {
         }
         .frame(maxWidth: .infinity)
         .buttonStyle(.borderedProminent)
+        .tint(.blue)
         .sheet(item: $shareURL, onDismiss: { showSuccess = true }) { url in
             ShareSheet(activityItems: [url])
         }
