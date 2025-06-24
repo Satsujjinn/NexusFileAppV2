@@ -2,7 +2,7 @@ import Foundation
 
 struct CSVExporter {
     static func export(farmer: Farmer, to url: URL) throws {
-        let columnHeader = "TREKKER,RAT,REVS,TYD,LT/HA,POMP,DRUK"
+        let columnHeader = "TREKKER,RAT,REVS,TYD,POMP,DRUK,LT/HA"
         var lines: [String] = ["NEXUSAG", columnHeader]
         for rec in farmer.recommendations {
             if let header = rec.header {
@@ -10,7 +10,7 @@ struct CSVExporter {
                 lines.append("\t" + header)
                 lines.append(columnHeader)
             } else {
-                let row = [rec.trekker, rec.rat, rec.revs, rec.tyd, rec.ltHa, rec.pomp, rec.druk]
+                let row = [rec.trekker, rec.rat, rec.revs, rec.tyd, rec.pomp, rec.druk, rec.ltHa]
                     .map { $0.replacingOccurrences(of: ",", with: " ") }
                     .joined(separator: ",")
                 lines.append(row)

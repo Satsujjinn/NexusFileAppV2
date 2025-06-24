@@ -16,7 +16,7 @@ struct NexusFileAppApp: App {
         WindowGroup {
             HomeView(openFileURL: $openFileURL)
                 .accentColor(.nexusGreen)
-                .background(Color.nexusBackground.ignoresSafeArea())
+                .background(Color.white.ignoresSafeArea())
                 .onOpenURL { url in
                     if url.isFileURL {
                         let tmp = FileManager.default.temporaryDirectory

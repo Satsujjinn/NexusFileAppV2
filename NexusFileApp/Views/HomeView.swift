@@ -28,7 +28,7 @@ struct HomeView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     NavigationLink(destination: CalibrationsView()) {
-                        CategoryCard(name: "Calibration Equipment")
+                        CategoryCard(name: "Calibration Equipment", tint: .blue)
                     }
                     .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
                     ForEach(fm.items.filter(\.isDirectory)) { item in
@@ -51,7 +51,7 @@ struct HomeView: View {
                 }
                 .padding()
             }
-            .background(Color.nexusBackground.ignoresSafeArea())
+            .background(Color.white.ignoresSafeArea())
             .navigationTitle("Categories")
             .navigationBarTitleDisplayMode(.large)
             .navigationBarItems(
