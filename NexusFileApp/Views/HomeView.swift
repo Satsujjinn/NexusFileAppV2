@@ -31,12 +31,6 @@ struct HomeView: View {
                         CategoryCard(name: "Calibration Equipment")
                     }
                     .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
-
-                    NavigationLink(destination: AanbevelingsView()) {
-                        CategoryCard(name: "Aanbevelings")
-                    }
-                    .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
-
                     ForEach(fm.items.filter(\.isDirectory)) { item in
                         NavigationLink(
                             destination: FolderView(
