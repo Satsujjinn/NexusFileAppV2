@@ -56,10 +56,6 @@ struct ClientAanbevelingView: View {
                 AanbevelingSaveButton(client: client, store: store)
             }
         )
-        .safeAreaInset(edge: .bottom) {
-            AanbevelingCreateExcelButton(client: client, store: store)
-                .padding([.horizontal, .bottom])
-        }
         .sheet(isPresented: $showAddHeader) {
             AanbevelingAddHeaderSheet { text, cnt in
                 store.addHeader(text, count: cnt, to: currentClient)
@@ -207,49 +203,6 @@ struct AanbevelingAddHeaderSheet: View {
     }
 }
 
-struct AanbevelingCreateExcelButton: View {
-    let client: Client
-    @ObservedObject var store: AanbevelingStore
-    @State private var shareURL: URL?
-    @State private var showError = false
-    @State private var errorMessage = ""
-    @State private var showSuccess = false
-
-    var body: some View {
-        Button("Create Excel File") {
-            export()
-        }
-        .frame(maxWidth: .infinity)
-        .buttonStyle(.borderedProminent)
-        .tint(.blue)
-        .sheet(item: $shareURL, onDismiss: { showSuccess = true }) { url in
-            ShareSheet(activityItems: [url])
-        }
-        .alert("Export Failed", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage)
-        }
-        .alert("Export Saved", isPresented: $showSuccess) {
-            Button("OK", role: .cancel) { }
-        }
-    }
-
-    private func export() {
-        guard let clientData = store.clients.first(where: { $0.id == client.id }) else {
-            errorMessage = FileExporterError.missingFarmer.localizedDescription
-            showError = true
-            return
-        }
-        do {
-            let url = try AanbevelingExporter.export(client: clientData, format: .csv)
-            shareURL = url
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
-        }
-    }
-}
 
 #Preview {
     ClientAanbevelingView(client: Client(name: "Sample"), store: AanbevelingStore())
