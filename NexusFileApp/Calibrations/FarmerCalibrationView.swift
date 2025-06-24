@@ -101,11 +101,11 @@ struct RecommendationRow: View {
                         .frame(width: smallWidth)
                     TextField("TYD OOR TOETSAFSTAND", text: $rec.tyd)
                         .frame(width: smallWidth)
-                    TextField("LT/HA", text: $rec.ltHa)
-                        .frame(width: smallWidth)
                     TextField("POMP", text: $rec.pomp)
                         .frame(width: smallWidth)
                     TextField("DRUK", text: $rec.druk)
+                        .frame(width: smallWidth)
+                    TextField("LT/HA", text: $rec.ltHa)
                         .frame(width: smallWidth)
                 }
             }
@@ -214,7 +214,7 @@ struct CreateExcelButton: View {
     @State private var showSuccess = false
 
     var body: some View {
-        Button("Create Excel File") {
+        Button("Save Table") {
             export()
         }
         .frame(maxWidth: .infinity)
