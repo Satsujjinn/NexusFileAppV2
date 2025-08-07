@@ -6,22 +6,26 @@
 //
 
 import Foundation
+import os.log
 
 class FileManagerService: ObservableObject {
     @Published var items: [DirectoryItem] = []
-
+    @Published var isLoading = false
+    @Published var error: AppError?
+    
     private let fileManager = FileManager.default
     private let documentsURL: URL
     private(set) var currentURL: URL
-
-    /// Your top-level categories
+    private let logger = Logger(subsystem: "com.leon.NexusFileApp", category: "FileManager")
+    
+    /// Your top-level categories for agricultural sales
     private let defaultCategories = [
         "Spray Programs",
-        "MRL",
-        "Labels",
-        "Saved",
-        "Recommendations",
-        "Crop Info"
+        "Product Labels",
+        "Safety Data",
+        "Crop Information",
+        "Client Documents",
+        "Technical Data"
     ]
 
     init(startingAt url: URL? = nil,
@@ -36,8 +40,13 @@ class FileManagerService: ObservableObject {
     private func ensureDefaultCategories() {
         var isDir: ObjCBool = false
         if !fileManager.fileExists(atPath: documentsURL.path, isDirectory: &isDir) {
-            try? fileManager.createDirectory(at: documentsURL,
-                                            withIntermediateDirectories: true)
+            do {
+                try fileManager.createDirectory(at: documentsURL, withIntermediateDirectories: true)
+                logger.info("Created documents directory at \(self.documentsURL.path)")
+            } catch {
+                logger.error("Failed to create documents directory: \(error.localizedDescription)")
+                self.error = AppError.fileOperationFailed("Failed to create documents directory")
+            }
         }
 
         let migrations = [
@@ -52,13 +61,22 @@ class FileManagerService: ObservableObject {
             var isDir: ObjCBool = false
             if fileManager.fileExists(atPath: oldURL.path, isDirectory: &isDir) {
                 if !fileManager.fileExists(atPath: newURL.path, isDirectory: &isDir) {
-                    try? fileManager.moveItem(at: oldURL, to: newURL)
+                    do {
+                        try fileManager.moveItem(at: oldURL, to: newURL)
+                        logger.info("Migrated \(old) to \(new)")
+                    } catch {
+                        logger.error("Failed to migrate \(old) to \(new): \(error.localizedDescription)")
+                    }
                 } else {
                     if let items = try? fileManager.contentsOfDirectory(at: oldURL, includingPropertiesForKeys: nil) {
                         for item in items {
                             let dest = newURL.appendingPathComponent(item.lastPathComponent)
                             if !fileManager.fileExists(atPath: dest.path) {
-                                try? fileManager.moveItem(at: item, to: dest)
+                                do {
+                                    try fileManager.moveItem(at: item, to: dest)
+                                } catch {
+                                    logger.error("Failed to move item during migration: \(error.localizedDescription)")
+                                }
                             }
                         }
                     }
@@ -78,19 +96,28 @@ class FileManagerService: ObservableObject {
 
         for name in defaultCategories {
             let folderURL = documentsURL.appendingPathComponent(name, isDirectory: true)
-            try? fileManager.createDirectory(at: folderURL,
-                                             withIntermediateDirectories: true)
+            do {
+                try fileManager.createDirectory(at: folderURL, withIntermediateDirectories: true)
+                logger.info("Created default category: \(name)")
+            } catch {
+                logger.error("Failed to create default category \(name): \(error.localizedDescription)")
+            }
         }
     }
 
     func loadItems() {
-        let keys: [URLResourceKey] = [.isDirectoryKey]
+        isLoading = true
+        error = nil
+        
+        let keys: [URLResourceKey] = [.isDirectoryKey, .contentModificationDateKey, .fileSizeKey]
         guard let urls = try? fileManager.contentsOfDirectory(
             at: currentURL,
             includingPropertiesForKeys: keys,
             options: [.skipsHiddenFiles]
         ) else {
             items = []
+            isLoading = false
+            error = AppError.fileOperationFailed("Failed to load directory contents")
             return
         }
 
@@ -100,19 +127,30 @@ class FileManagerService: ObservableObject {
                 if !$0.isDirectory && $1.isDirectory { return false }
                 return $0.name.localizedStandardCompare($1.name) == .orderedAscending
             }
+        
+        isLoading = false
+        logger.info("Loaded \(self.items.count) items from \(self.currentURL.path)")
     }
 
     /// Load items on a background queue to avoid blocking the UI.
     func loadItemsAsync() {
+        isLoading = true
+        error = nil
+        
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            let keys: [URLResourceKey] = [.isDirectoryKey]
+            
+            let keys: [URLResourceKey] = [.isDirectoryKey, .contentModificationDateKey, .fileSizeKey]
             guard let urls = try? self.fileManager.contentsOfDirectory(
                 at: self.currentURL,
                 includingPropertiesForKeys: keys,
                 options: [.skipsHiddenFiles]
             ) else {
-                DispatchQueue.main.async { self.items = [] }
+                DispatchQueue.main.async {
+                    self.items = []
+                    self.isLoading = false
+                    self.error = AppError.fileOperationFailed("Failed to load directory contents")
+                }
                 return
             }
 
@@ -125,6 +163,8 @@ class FileManagerService: ObservableObject {
 
             DispatchQueue.main.async {
                 self.items = newItems
+                self.isLoading = false
+                self.logger.info("Async loaded \(newItems.count) items from \(self.currentURL.path)")
             }
         }
     }
@@ -135,8 +175,16 @@ class FileManagerService: ObservableObject {
 
     func createFolder(named name: String) {
         let newURL = currentURL.appendingPathComponent(name, isDirectory: true)
-        try? fileManager.createDirectory(at: newURL, withIntermediateDirectories: true)
-        loadItems()
+        do {
+            try fileManager.createDirectory(at: newURL, withIntermediateDirectories: true)
+            logger.info("Created folder: \(name)")
+            loadItems()
+            Haptics.success()
+        } catch {
+            logger.error("Failed to create folder \(name): \(error.localizedDescription)")
+            self.error = AppError.fileOperationFailed("Failed to create folder: \(error.localizedDescription)")
+            Haptics.error()
+        }
     }
 
     func importFile(from url: URL) {
@@ -146,28 +194,54 @@ class FileManagerService: ObservableObject {
         let dest = currentURL.appendingPathComponent(url.lastPathComponent)
 
         if fileManager.fileExists(atPath: dest.path) {
-            try? fileManager.removeItem(at: dest)
+            do {
+                try fileManager.removeItem(at: dest)
+            } catch {
+                logger.error("Failed to remove existing file: \(error.localizedDescription)")
+                self.error = AppError.fileOperationFailed("Failed to replace existing file")
+                Haptics.error()
+                return
+            }
         }
 
         do {
             try fileManager.copyItem(at: url, to: dest)
+            logger.info("Imported file: \(url.lastPathComponent)")
+            loadItems()
+            Haptics.success()
         } catch {
-            print("Import failed: \(error)")
+            logger.error("Import failed for \(url.lastPathComponent): \(error.localizedDescription)")
+            self.error = AppError.importFailed(error.localizedDescription)
+            Haptics.error()
         }
-
-        loadItems()
     }
 
     func delete(item: DirectoryItem) {
-        try? fileManager.removeItem(at: item.id)
-        loadItems()
+        do {
+            try fileManager.removeItem(at: item.id)
+            logger.info("Deleted item: \(item.name)")
+            loadItems()
+            Haptics.success()
+        } catch {
+            logger.error("Failed to delete \(item.name): \(error.localizedDescription)")
+            self.error = AppError.fileOperationFailed("Failed to delete item: \(error.localizedDescription)")
+            Haptics.error()
+        }
     }
 
     func rename(item: DirectoryItem, to newName: String) {
         let newURL = item.id.deletingLastPathComponent()
             .appendingPathComponent(newName, isDirectory: item.isDirectory)
-        try? fileManager.moveItem(at: item.id, to: newURL)
-        loadItems()
+        do {
+            try fileManager.moveItem(at: item.id, to: newURL)
+            logger.info("Renamed \(item.name) to \(newName)")
+            loadItems()
+            Haptics.success()
+        } catch {
+            logger.error("Failed to rename \(item.name) to \(newName): \(error.localizedDescription)")
+            self.error = AppError.fileOperationFailed("Failed to rename item: \(error.localizedDescription)")
+            Haptics.error()
+        }
     }
 
     func duplicate(item: DirectoryItem) {
@@ -176,58 +250,52 @@ class FileManagerService: ObservableObject {
         let ext = originalURL.pathExtension
         let copyName = "\(base) copy.\(ext)"
         let destURL = currentURL.appendingPathComponent(copyName)
-        try? fileManager.copyItem(at: originalURL, to: destURL)
-        loadItems()
+        
+        do {
+            try fileManager.copyItem(at: originalURL, to: destURL)
+            logger.info("Duplicated \(item.name) to \(copyName)")
+            loadItems()
+            Haptics.success()
+        } catch {
+            logger.error("Failed to duplicate \(item.name): \(error.localizedDescription)")
+            self.error = AppError.fileOperationFailed("Failed to duplicate item: \(error.localizedDescription)")
+            Haptics.error()
+        }
     }
 
     func move(item: DirectoryItem, to subfolder: String) {
         let destFolder = documentsURL.appendingPathComponent(subfolder, isDirectory: true)
-        try? fileManager.createDirectory(at: destFolder, withIntermediateDirectories: true)
-        let destURL = destFolder.appendingPathComponent(item.id.lastPathComponent)
         do {
+            try fileManager.createDirectory(at: destFolder, withIntermediateDirectories: true)
+            let destURL = destFolder.appendingPathComponent(item.id.lastPathComponent)
+            
             if fileManager.fileExists(atPath: destURL.path) {
                 try fileManager.removeItem(at: destURL)
             }
             try fileManager.moveItem(at: item.id, to: destURL)
+            logger.info("Moved \(item.name) to \(subfolder)")
+            loadItems()
+            Haptics.success()
         } catch {
-            print("Move failed: \(error)")
+            logger.error("Failed to move \(item.name) to \(subfolder): \(error.localizedDescription)")
+            self.error = AppError.fileOperationFailed("Failed to move item: \(error.localizedDescription)")
+            Haptics.error()
         }
-        loadItems()
     }
 
     func exportAsPDF(item: DirectoryItem) -> URL? {
-        try? ExcelPDFExporter.export(at: item.id)
-    }
-
-    private var iCloudDocumentsURL: URL? {
-        FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents", isDirectory: true)
-    }
-
-    func backupToICloud() {
-        guard let cloud = iCloudDocumentsURL else { return }
-        copyRecursive(from: documentsURL, to: cloud)
-    }
-
-    func syncFromICloud() {
-        guard let cloud = iCloudDocumentsURL else { return }
-        copyRecursive(from: cloud, to: documentsURL)
-        loadItems()
-    }
-
-    private func copyRecursive(from src: URL, to dest: URL) {
-        var isDir: ObjCBool = false
-        if fileManager.fileExists(atPath: src.path, isDirectory: &isDir), isDir.boolValue {
-            try? fileManager.createDirectory(at: dest, withIntermediateDirectories: true)
-            let contents = (try? fileManager.contentsOfDirectory(at: src, includingPropertiesForKeys: nil, options: [])) ?? []
-            for item in contents {
-                let destItem = dest.appendingPathComponent(item.lastPathComponent)
-                copyRecursive(from: item, to: destItem)
-            }
-        } else {
-            if fileManager.fileExists(atPath: dest.path) {
-                try? fileManager.removeItem(at: dest)
-            }
-            try? fileManager.copyItem(at: src, to: dest)
+        do {
+            let url = try ExcelPDFExporter.export(at: item.id)
+            logger.info("Exported \(item.name) as PDF")
+            Haptics.success()
+            return url
+        } catch {
+            logger.error("Failed to export \(item.name) as PDF: \(error.localizedDescription)")
+            self.error = AppError.exportFailed(error.localizedDescription)
+            Haptics.error()
+            return nil
         }
     }
+
+
 }

@@ -9,37 +9,48 @@ struct FarmerCalibrationView: View {
     }
     @State private var showAddHeader = false
     @State private var selection = Set<UUID>()
+    @State private var showExportOptions = false
     @Environment(\.editMode) private var editMode
 
     var body: some View {
-        List(selection: $selection) {
-            let recs = store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []
-            let enumerated: [(Recommendation, Int?)] = {
-                var count = 0
-                return recs.map { rec in
-                    if rec.isHeader {
-                        count = 0
-                        return (rec, nil)
-                    } else {
-                        count += 1
-                        return (rec, count)
+        Group {
+            if currentFarmer.recommendations.isEmpty {
+                EmptyStateView(
+                    title: "No Calibrations",
+                    message: "Add tractor calibrations to create a spray program for \(currentFarmer.name)",
+                    systemImage: "gearshape.2"
+                )
+            } else {
+                List(selection: $selection) {
+                    let recs = store.farmers.first(where: { $0.id == farmer.id })?.recommendations ?? []
+                    let enumerated: [(Recommendation, Int?)] = {
+                        var count = 0
+                        return recs.map { rec in
+                            if rec.isHeader {
+                                count = 0
+                                return (rec, nil)
+                            } else {
+                                count += 1
+                                return (rec, count)
+                            }
+                        }
+                    }()
+                    ForEach(enumerated, id: \.0.id) { item in
+                        let rec = item.0
+                        if let header = rec.header {
+                            HeaderRow(header: header)
+                        } else if let idx = item.1 {
+                            RecommendationRow(index: idx, rec: binding(for: rec))
+                        }
+                    }
+                    .onMove { indices, newOffset in
+                        store.moveRecommendations(at: indices, to: newOffset, for: currentFarmer)
                     }
                 }
-            }()
-            ForEach(enumerated, id: \.0.id) { item in
-                let rec = item.0
-                if let header = rec.header {
-                    Text(header)
-                        .font(.headline)
-                } else if let idx = item.1 {
-                    RecommendationRow(index: idx, rec: binding(for: rec))
-                }
-            }
-            .onMove { indices, newOffset in
-                store.moveRecommendations(at: indices, to: newOffset, for: currentFarmer)
             }
         }
         .navigationTitle(currentFarmer.name)
+        .navigationBarTitleDisplayMode(.large)
         .navigationBarItems(
             leading: EditButton(),
             trailing: HStack {
@@ -47,23 +58,52 @@ struct FarmerCalibrationView: View {
                     Button("Delete Selected", role: .destructive) {
                         store.deleteRecommendations(with: selection, from: currentFarmer)
                         selection.removeAll()
+                        Haptics.error()
                     }
                 }
-                Button("New") {
+                Button {
                     store.addRecommendation(to: currentFarmer)
+                    Haptics.selection()
+                } label: {
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 20))
                 }
-                Button("Add") { showAddHeader = true }
-                SaveButton(farmer: farmer, store: store)
+                Button {
+                    showAddHeader = true
+                } label: {
+                    Image(systemName: "textformat.abc")
+                        .font(.system(size: 20))
+                }
+                Menu {
+                    Button("Export as Excel") {
+                        exportSprayProgram(format: ExportFormat.csv)
+                    }
+                    Button("Export as PDF") {
+                        exportSprayProgram(format: ExportFormat.pdf)
+                    }
+                    Button("Share Program") {
+                        showExportOptions = true
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 20))
+                }
             }
         )
         .safeAreaInset(edge: .bottom) {
-            CreateExcelButton(farmer: farmer, store: store)
-                .padding([.horizontal, .bottom])
+            if !currentFarmer.recommendations.isEmpty {
+                ExportButton(farmer: farmer, store: store)
+                    .padding([.horizontal, .bottom])
+            }
         }
         .sheet(isPresented: $showAddHeader) {
             AddHeaderSheet { text, cnt in
                 store.addHeader(text, count: cnt, to: currentFarmer)
+                Haptics.success()
             }
+        }
+        .sheet(isPresented: $showExportOptions) {
+            ExportOptionsSheet(farmer: farmer, store: store)
         }
     }
 
@@ -77,6 +117,37 @@ struct FarmerCalibrationView: View {
             }
         )
     }
+    
+    private func exportSprayProgram(format: ExportFormat) {
+        guard let farmerData = store.farmers.first(where: { $0.id == farmer.id }) else { return }
+        do {
+            _ = try FileExporter.export(farmer: farmerData, format: format)
+            // Share functionality will be handled by the sheet
+        } catch {
+            // Handle error
+        }
+    }
+}
+
+struct HeaderRow: View {
+    let header: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "textformat.abc")
+                .foregroundColor(.nexusGreen)
+                .font(.title3)
+            
+            Text(header)
+                .font(.headline)
+                .foregroundColor(.primary)
+            
+            Spacer()
+        }
+        .padding(.vertical, 8)
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
+    }
 }
 
 struct RecommendationRow: View {
@@ -84,55 +155,86 @@ struct RecommendationRow: View {
     @Binding var rec: Recommendation
 
     var body: some View {
-        GeometryReader { geo in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    Text("\(index)")
-                        .frame(width: 30)
-
-                    let total = geo.size.width - 30
-                    let smallWidth = max(total * 0.11, 50)
-
-                    TextField("TREKKER", text: $rec.trekker)
-                        .frame(width: smallWidth)
-                    TextField("RAT", text: $rec.rat)
-                        .frame(width: smallWidth)
-                    TextField("REVS", text: $rec.revs)
-                        .frame(width: smallWidth)
-                    TextField("TYD OOR TOETSAFSTAND", text: $rec.tyd)
-                        .frame(width: smallWidth)
-                    TextField("POMP", text: $rec.pomp)
-                        .frame(width: smallWidth)
-                    TextField("DRUK", text: $rec.druk)
-                        .frame(width: smallWidth)
-                    TextField("LT/HA", text: $rec.ltHa)
-                        .frame(width: smallWidth)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("#\(index)")
+                    .font(.headline)
+                    .foregroundColor(.nexusGreen)
+                    .frame(width: 40, alignment: .leading)
+                
+                Spacer()
+                
+                Text("Tractor Calibration")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            GeometryReader { geo in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        CalibrationField(title: "TRACTOR", value: $rec.trekker, width: geo.size.width * 0.15)
+                        CalibrationField(title: "RAT", value: $rec.rat, width: geo.size.width * 0.12)
+                        CalibrationField(title: "REVS", value: $rec.revs, width: geo.size.width * 0.12)
+                        CalibrationField(title: "TIME", value: $rec.tyd, width: geo.size.width * 0.15)
+                        CalibrationField(title: "PUMP", value: $rec.pomp, width: geo.size.width * 0.12)
+                        CalibrationField(title: "PRESSURE", value: $rec.druk, width: geo.size.width * 0.12)
+                        CalibrationField(title: "L/HA", value: $rec.ltHa, width: geo.size.width * 0.12)
+                    }
+                    .padding(.horizontal, 4)
                 }
             }
+            .frame(height: 60)
         }
-        .frame(height: 40)
-        .textFieldStyle(BlackBorderTextFieldStyle())
+        .padding(.vertical, 8)
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color(.systemGray4), lineWidth: 1)
+        )
     }
 }
 
-struct SaveButton: View {
+struct CalibrationField: View {
+    let title: String
+    @Binding var value: String
+    let width: CGFloat
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            TextField("", text: $value)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .font(.caption)
+        }
+        .frame(width: width)
+    }
+}
+
+struct ExportButton: View {
     let farmer: Farmer
     @ObservedObject var store: CalibrationStore
     @State private var shareURL: URL?
-    @State private var showOptions = false
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var showSuccess = false
 
     var body: some View {
-        Button(action: { showOptions = true }) {
-            Image(systemName: "tray.and.arrow.down")
+        Button {
+            exportSprayProgram()
+        } label: {
+            HStack {
+                Image(systemName: "square.and.arrow.up")
+                Text("Export Spray Program")
+            }
+            .frame(maxWidth: .infinity)
         }
-        .confirmationDialog("Export Format", isPresented: $showOptions) {
-            Button("Excel (.csv)") { export(type: .csv) }
-            Button("PDF (.pdf)") { export(type: .pdf) }
-        }
-        .sheet(item: $shareURL, onDismiss: { showSuccess = true }) { url in
+        .buttonStyle(.borderedProminent)
+        .tint(.nexusGreen)
+        .sheet(item: $shareURL) { url in
             ShareSheet(activityItems: [url])
         }
         .alert("Export Failed", isPresented: $showError) {
@@ -140,41 +242,107 @@ struct SaveButton: View {
         } message: {
             Text(errorMessage)
         }
-        .alert("Export Saved", isPresented: $showSuccess) {
-            Button("OK", role: .cancel) { }
-        }
     }
 
-    private enum ExportType { case csv, pdf }
-
-    private func export(type: ExportType) {
+    private func exportSprayProgram() {
         guard let farmerData = store.farmers.first(where: { $0.id == farmer.id }) else {
-            errorMessage = FileExporterError.missingFarmer.localizedDescription
+            errorMessage = "Could not find spray program data"
             showError = true
             return
         }
         do {
-            let url = try FileExporter.export(farmer: farmerData, format: type == .csv ? .csv : .pdf)
+            let url = try FileExporter.export(farmer: farmerData, format: .csv)
             shareURL = url
+            Haptics.success()
         } catch {
             errorMessage = error.localizedDescription
             showError = true
+            Haptics.error()
         }
     }
-
-    private static let dateFormatter: DateFormatter = {
-        let df = DateFormatter()
-        df.dateFormat = "yyyyMMdd"
-        return df
-    }()
 }
 
-extension UIApplication {
-    static func presentShareSheet(url: URL) {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let root = scene.windows.first?.rootViewController else { return }
-        let av = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-        root.present(av, animated: true)
+struct ExportOptionsSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let farmer: Farmer
+    @ObservedObject var store: CalibrationStore
+    @State private var shareURL: URL?
+    @State private var showError = false
+    @State private var errorMessage = ""
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Button {
+                        exportProgram(format: ExportFormat.csv)
+                    } label: {
+                        HStack {
+                            Image(systemName: "tablecells")
+                                .foregroundColor(.green)
+                            VStack(alignment: .leading) {
+                                Text("Export as Excel")
+                                    .font(.headline)
+                                Text("CSV format for spreadsheet applications")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    
+                    Button {
+                        exportProgram(format: ExportFormat.pdf)
+                    } label: {
+                        HStack {
+                            Image(systemName: "doc.text")
+                                .foregroundColor(.red)
+                            VStack(alignment: .leading) {
+                                Text("Export as PDF")
+                                    .font(.headline)
+                                Text("Professional document format")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Export Format")
+                } footer: {
+                    Text("Choose the format that works best for your client")
+                }
+            }
+            .navigationTitle("Export Spray Program")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(
+                leading: Button("Cancel") { dismiss() }
+            )
+            .sheet(item: $shareURL) { url in
+                ShareSheet(activityItems: [url])
+            }
+            .alert("Export Failed", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
+        }
+    }
+    
+    private func exportProgram(format: ExportFormat) {
+        guard let farmerData = store.farmers.first(where: { $0.id == farmer.id }) else {
+            errorMessage = "Could not find spray program data"
+            showError = true
+            return
+        }
+        do {
+            let url = try FileExporter.export(farmer: farmerData, format: format)
+            shareURL = url
+            Haptics.success()
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+            Haptics.error()
+        }
     }
 }
 
@@ -187,64 +355,40 @@ struct AddHeaderSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Header", text: $text)
-                Stepper(value: $count, in: 0...20) {
-                    Text("Blank Tractors: \(count)")
+                Section {
+                    TextField("Header Title", text: $text)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                } header: {
+                    Text("Section Header")
+                } footer: {
+                    Text("Add a header to organize your spray program (e.g., 'Field 1', 'Crop Type')")
+                }
+                
+                Section {
+                    Stepper(value: $count, in: 0...20) {
+                        HStack {
+                            Text("Tractor Entries")
+                            Spacer()
+                            Text("\(count)")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Tractor Entries")
+                } footer: {
+                    Text("Number of tractor calibration entries to add after this header")
                 }
             }
-            .navigationTitle("Add Header")
+            .navigationTitle("Add Section")
+            .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(
                 leading: Button("Cancel") { dismiss() },
                 trailing: Button("Add") {
-                    onAdd(text, count)
+                    onAdd(text.trimmingCharacters(in: .whitespaces), count)
                     dismiss()
                 }
-                .disabled(text.isEmpty)
+                .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
             )
-        }
-    }
-}
-
-struct CreateExcelButton: View {
-    let farmer: Farmer
-    @ObservedObject var store: CalibrationStore
-    @State private var shareURL: URL?
-    @State private var showError = false
-    @State private var errorMessage = ""
-    @State private var showSuccess = false
-
-    var body: some View {
-        Button("Save Table") {
-            export()
-        }
-        .frame(maxWidth: .infinity)
-        .buttonStyle(.borderedProminent)
-        .tint(.blue)
-        .sheet(item: $shareURL, onDismiss: { showSuccess = true }) { url in
-            ShareSheet(activityItems: [url])
-        }
-        .alert("Export Failed", isPresented: $showError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage)
-        }
-        .alert("Export Saved", isPresented: $showSuccess) {
-            Button("OK", role: .cancel) { }
-        }
-    }
-
-    private func export() {
-        guard let farmerData = store.farmers.first(where: { $0.id == farmer.id }) else {
-            errorMessage = FileExporterError.missingFarmer.localizedDescription
-            showError = true
-            return
-        }
-        do {
-            let url = try FileExporter.export(farmer: farmerData, format: .csv)
-            shareURL = url
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
         }
     }
 }

@@ -1,58 +1,179 @@
 # NexusFileApp
 
-A modern iOS SwiftUI application to manage and share PDF & Excel documents locally. Built for professionals who need a simple, reliable file manager on iPhone.
-
----
-
-## Overview
-
-NexusFileApp provides a Files-like interface to organize, import, preview, and share work documents in one place.
-
-When a PDF or Excel file is opened from another app (Mail, Files, WhatsApp, etc.) NexusFileApp now displays a folder picker so you can choose exactly where to store the document.
+A specialized iOS application for agricultural crop solution salespeople to manage spray programs and product information for their clients. Built with SwiftUI following Apple's best practices.
 
 ## Features
 
-* Manage folders and subfolders
-* Import PDF and Excel files via the Files picker or by opening them from other apps
-* Preview documents with QuickLook
-* Share files using the iOS share sheet
-* Search and sort by name or date
-* Rename, duplicate, and delete items with context menus and swipe actions
-* Move files and folders to any category
-* Save calibration data to CSV or PDF files with sub headers preserved
-* Light and Dark mode with custom branding colors
-* Sync files with iCloud and back them up with one tap
-* Faster folder loading thanks to background processing
+### Core Functionality
+- 🚜 **Spray Program Management**: Create and manage tractor calibration programs for clients
+- 📁 **Document Organization**: Organize product labels, safety data, and technical information
+- 📱 **Modern UI**: Built with SwiftUI for a native iOS experience
 
-## Screenshots
+- 📤 **Share Extension**: Import files from other apps
+- 🎯 **File Preview**: Preview PDFs, images, and documents
+- 📊 **Export Support**: Export spray programs as Excel or PDF
+- 🔍 **Search**: Find files quickly with intelligent search
+- 📋 **Context Menus**: Rich context menus for file operations
+
+### Technical Excellence
+- ✅ **Error Handling**: Comprehensive error handling with user-friendly messages
+- ✅ **Loading States**: Proper loading indicators and empty states
+- ✅ **Accessibility**: Full VoiceOver support and accessibility features
+- ✅ **Performance**: Optimized with caching and async operations
+- ✅ **Testing**: Comprehensive unit tests
+- ✅ **Logging**: Structured logging for debugging
+- ✅ **Memory Management**: Proper memory management and cleanup
+
+## Architecture
+
+### MVVM Pattern
+The app follows the Model-View-ViewModel pattern:
+- **Models**: `DirectoryItem`, `AppError`
+- **Views**: SwiftUI views with clear separation of concerns
+- **ViewModels**: `FileManagerService` handles business logic
+
+### Key Components
+
+#### Services
+- `FileManagerService`: Core file operations with error handling
+- `SharedFileManager`: Shared file access for app and extensions
+- `FileCache`: Performance optimization through caching
+- `Haptics`: Consistent haptic feedback
+
+#### Views
+- `HomeView`: Main categories view
+- `FolderView`: File browser with search and sorting
+- `LoadingView`, `ErrorView`, `EmptyStateView`: Reusable UI components
+
+#### Models
+- `DirectoryItem`: Enhanced file model with metadata
+- `AppError`: Centralized error handling
+
+## Best Practices Implemented
+
+### 1. Error Handling
+- Centralized error model (`AppError`)
+- User-friendly error messages with recovery suggestions
+- Proper error propagation through the app
+- Graceful degradation when operations fail
+
+### 2. Performance
+- Async file operations to prevent UI blocking
+- File metadata caching to reduce filesystem calls
+- Lazy loading of file lists
+- Efficient sorting and filtering
+
+### 3. User Experience
+- Loading states for all async operations
+- Empty states with helpful guidance
+- Consistent haptic feedback
+- Smooth animations and transitions
+- Search functionality with real-time filtering
+
+### 4. Accessibility
+- VoiceOver support for all interactive elements
+- Proper accessibility labels and hints
+- Semantic grouping of related elements
+- Support for Dynamic Type
+
+### 5. Security
+- Proper file permissions handling
+- Secure file operations with error checking
+- Input validation and sanitization
+- Safe file import/export operations
+
+### 6. Testing
+- Comprehensive unit tests for core functionality
+- Test coverage for file operations
+- Error condition testing
+- Performance testing
+
+### 7. Logging
+- Structured logging with os.log
+- Different log levels for different environments
+- Performance monitoring
+- Error tracking and debugging
+
+## File Support
+
+The app supports various file types:
+- **PDF Documents**: Full preview and sharing
+- **Excel Spreadsheets**: View, edit, and export as PDF
+- **Word Documents**: View and edit support
+- **Images**: JPEG, PNG, HEIC formats
+- **Text Files**: Plain text and RTF documents
 
 
 
-## Installation
+## Share Extension
 
-1. Clone the repository:
+The app includes a share extension that allows:
+- Importing files from other apps
+- Quick file organization
+- Batch file operations
+- Direct file access from other apps
 
-   
-   git clone https://github.com/yourusername/NexusFileApp.git
-   cd NexusFileApp
+## Development Guidelines
 
-2. Open the project in Xcode:
+### Code Style
+- Follow Swift API Design Guidelines
+- Use meaningful variable and function names
+- Add comprehensive documentation
+- Implement proper error handling
 
-   
-   open NexusFileApp.xcodeproj
-   
-3. Select your Apple Developer team under Signing & Capabilities.
-4. Add your app icon in **Assets.xcassets > AppIcon**.
-5. Build and run on an iOS 15+ simulator or device.
+### Testing
+- Write tests for all business logic
+- Test error conditions
+- Test performance with large file sets
+- Test accessibility features
 
-## Usage
+### Performance
+- Use async operations for file I/O
+- Implement caching for frequently accessed data
+- Optimize UI updates
+- Monitor memory usage
 
-* Tap the “+” button to add a new category.
-* In a folder view, use the “...” menu to create a folder, import files, or sort items.
-* Long-press or swipe an item for rename, duplicate, or delete options.
-* Tap the share icon to share documents via Mail, WhatsApp, or other apps.
-* Use the cloud buttons on the home screen to sync or back up all files to iCloud.
+### Security
+- Validate all user inputs
+- Handle file permissions properly
+- Secure file operations
+- Protect user data
+
+## Building and Running
+
+1. Open `NexusFileApp.xcodeproj` in Xcode
+2. Select your target device or simulator
+3. Build and run the project
+4. The app will create default categories on first launch
+
+## Testing
+
+Run the test suite:
+```bash
+# Run all tests
+xcodebuild test -project NexusFileApp.xcodeproj -scheme NexusFileApp -destination 'platform=iOS Simulator,name=iPhone 15'
+
+# Run specific test target
+xcodebuild test -project NexusFileApp.xcodeproj -scheme NexusFileApp -only-testing:NexusFileAppTests/FileManagerServiceTests
+```
+
+## Contributing
+
+When contributing to this project:
+
+1. Follow the existing code style
+2. Add tests for new functionality
+3. Update documentation
+4. Test on different devices and iOS versions
+5. Ensure accessibility compliance
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support or questions:
+- Check the documentation
+- Review the test cases for usage examples
+- Examine the source code for implementation details

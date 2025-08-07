@@ -47,12 +47,42 @@ struct FolderView: View {
     }
 
     var body: some View {
-        List {
-            ForEach(filteredItems) { item in
-                row(for: item)
-            }
-            .onDelete { idxs in
-                idxs.forEach { service.delete(item: filteredItems[$0]) }
+        Group {
+            if service.isLoading {
+                LoadingView(message: "Loading files...")
+            } else if let error = service.error {
+                ErrorView(error: error) {
+                    service.loadItemsAsync()
+                }
+            } else if filteredItems.isEmpty {
+                if searchText.isEmpty {
+                    EmptyStateView(
+                        title: "No Documents",
+                        message: "Import product labels, safety data, or create spray programs for your clients. Tap the menu button to get started.",
+                        systemImage: "doc.badge.plus",
+                        actionButton: (title: "Import File", action: {
+                            showingImporter = true
+                        })
+                    )
+                } else {
+                    EmptyStateView(
+                        title: "No Results",
+                        message: "No files match your search. Try different keywords or clear your search.",
+                        systemImage: "magnifyingglass",
+                        actionButton: (title: "Clear Search", action: {
+                            searchText = ""
+                        })
+                    )
+                }
+            } else {
+                List {
+                    ForEach(filteredItems) { item in
+                        row(for: item)
+                    }
+                    .onDelete { idxs in
+                        idxs.forEach { service.delete(item: filteredItems[$0]) }
+                    }
+                }
             }
         }
         .searchable(text: $searchText,
@@ -130,10 +160,27 @@ struct FolderView: View {
             }
         } else {
             HStack {
-                Label(item.name, systemImage: "doc.fill")
-                Spacer()
-                Button { shareURL = item.id } label: {
-                    Image(systemName: "square.and.arrow.up")
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        fileIcon(for: item)
+                        Text(item.name)
+                            .lineLimit(1)
+                        Spacer()
+                        Button { shareURL = item.id } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    HStack {
+                        Text(item.formattedFileSize)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(item.formattedDate)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             .contentShape(Rectangle())
@@ -171,6 +218,29 @@ struct FolderView: View {
                 }
                 .tint(.orange)
             }
+        }
+    }
+    
+    @ViewBuilder
+    private func fileIcon(for item: DirectoryItem) -> some View {
+        if item.isPDF {
+            Image(systemName: "doc.fill")
+                .foregroundColor(.red)
+        } else if item.isExcel {
+            Image(systemName: "tablecells")
+                .foregroundColor(.green)
+        } else if item.isWord {
+            Image(systemName: "doc.text.fill")
+                .foregroundColor(.blue)
+        } else if item.isImage {
+            Image(systemName: "photo.fill")
+                .foregroundColor(.purple)
+        } else if item.isText {
+            Image(systemName: "doc.text")
+                .foregroundColor(.orange)
+        } else {
+            Image(systemName: "doc.fill")
+                .foregroundColor(.gray)
         }
     }
 }

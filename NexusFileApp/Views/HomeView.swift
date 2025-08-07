@@ -11,6 +11,7 @@ struct HomeView: View {
     @Binding var openFileURL: URL?
     @StateObject private var fm = FileManagerService()
     @State private var showingNew = false
+    @State private var showingSettings = false
     @State private var renameTarget: DirectoryItem?
     @State private var pendingFile: URL?
     @State private var navigateService: FileManagerService?
@@ -25,48 +26,69 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    NavigationLink(destination: CalibrationsView()) {
-                        CategoryCard(name: "Calibration Equipment", tint: .blue)
+            Group {
+                if fm.isLoading {
+                    LoadingView(message: "Loading categories...")
+                } else if let error = fm.error {
+                    ErrorView(error: error) {
+                        fm.loadItemsAsync()
                     }
-                    .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
-                    ForEach(fm.items.filter(\.isDirectory)) { item in
-                        NavigationLink(
-                            destination: FolderView(
-                                service: fm.navigate(to: item),
-                                title: item.name
-                            )
-                        ) {
-                            CategoryCard(name: item.name)
-                        }
-                        .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
-                        .contextMenu {
-                            Button("Rename") { renameTarget = item }
-                            Button("Delete", role: .destructive) {
-                                fm.delete(item: item)
+                } else if fm.items.filter(\.isDirectory).isEmpty {
+                    EmptyStateView(
+                        title: "No Categories",
+                        message: "Create your first category to get started organizing your agricultural documents and spray programs.",
+                        systemImage: "folder.badge.plus",
+                        actionButton: (title: "Create Category", action: {
+                            showingNew = true
+                        })
+                    )
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: columns, spacing: 16) {
+                                                NavigationLink(destination: CalibrationsView()) {
+                        CategoryCard(name: "Spray Programs", tint: .nexusGreen, icon: "tractor.fill")
+                    }
+                            .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
+                            ForEach(fm.items.filter(\.isDirectory)) { item in
+                                NavigationLink(
+                                    destination: FolderView(
+                                        service: fm.navigate(to: item),
+                                        title: item.name
+                                    )
+                                ) {
+                                    CategoryCard(name: item.name, icon: getIconForCategory(item.name))
+                                }
+                                .simultaneousGesture(TapGesture().onEnded { Haptics.selection() })
+                                .contextMenu {
+                                    Button("Rename") { renameTarget = item }
+                                    Button("Delete", role: .destructive) {
+                                        fm.delete(item: item)
+                                    }
+                                }
                             }
                         }
+                        .padding()
                     }
                 }
-                .padding()
             }
             .background(Color.white.ignoresSafeArea())
             .navigationTitle("Categories")
             .navigationBarTitleDisplayMode(.large)
             .navigationBarItems(
-                trailing: HStack {
-                    Button { fm.syncFromICloud() } label: {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                    }
-                    Button { fm.backupToICloud() } label: {
-                        Image(systemName: "icloud.and.arrow.up")
-                    }
-                    Button { showingNew = true } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 22))
-                    }
+                leading: Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 20))
                 }
+                .accessibilityLabel("Settings")
+                .accessibilityHint("Open app settings and preferences"),
+                trailing: Button { showingNew = true } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                }
+                .accessibilityLabel("New Category")
+                .accessibilityHint("Create a new category folder")
             )
             .sheet(isPresented: $showingNew) {
                 NewFolderSheet(
@@ -76,6 +98,9 @@ struct HomeView: View {
                     fm.createFolder(named: name)
                     Haptics.success()
                 }
+            }
+            .sheet(isPresented: $showingSettings) {
+                GeneralSettingsView()
             }
             .sheet(item: $renameTarget) { item in
                 RenameSheet(item: item) { newName in
@@ -93,18 +118,14 @@ struct HomeView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             }
-            .background(
-                NavigationLink(
-                    destination: destinationView(),
-                    isActive: Binding(
-                        get: { navigateService != nil },
-                        set: { if !$0 { navigateService = nil } }
-                    )
-                ) { EmptyView() }
-                .hidden()
-            )
-            .onChange(of: openFileURL) { url in
-                if let url {
+            .navigationDestination(isPresented: Binding(
+                get: { navigateService != nil },
+                set: { if !$0 { navigateService = nil } }
+            )) {
+                destinationView()
+            }
+            .onChange(of: openFileURL) { oldValue, newValue in
+                if let url = newValue {
                     pendingFile = url
                     showSavedAlert = true
                     openFileURL = nil
@@ -123,6 +144,29 @@ struct HomeView: View {
             )
         } else {
             EmptyView()
+        }
+    }
+    
+    private func getIconForCategory(_ categoryName: String) -> String {
+        switch categoryName {
+        case "Spray Programs":
+            return "tractor.fill"
+        case "Product Labels":
+            return "tag.fill"
+        case "Safety Data":
+            return "shield.fill"
+        case "Crop Information":
+            return "leaf.fill"
+        case "Client Documents":
+            return "person.2.fill"
+        case "Technical Data":
+            return "chart.bar.fill"
+        case "Saved":
+            return "bookmark.fill"
+        case "Crop Info":
+            return "leaf.fill"
+        default:
+            return "folder.fill"
         }
     }
 }

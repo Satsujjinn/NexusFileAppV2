@@ -22,21 +22,146 @@
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>org.openxmlformats.spreadsheetml.sheet</string>
+				<string>com.microsoft.excel.xls</string>
 			</array>
 		</dict>
-</array>
-        <key>UIFileSharingEnabled</key>
-        <false/>
-        <key>CFBundleURLTypes</key>
-        <array>
-                <dict>
-                        <key>CFBundleURLName</key>
-                        <string>com.leon.NexusFileApp</string>
-                        <key>CFBundleURLSchemes</key>
-                        <array>
-                                <string>nexusfileapp</string>
-                        </array>
-                </dict>
-        </array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Word Document</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.openxmlformats.wordprocessingml.document</string>
+				<string>com.microsoft.word.doc</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Text Document</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.plain-text</string>
+				<string>public.rtf</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Image</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.image</string>
+				<string>public.jpeg</string>
+				<string>public.png</string>
+				<string>public.heic</string>
+			</array>
+		</dict>
+	</array>
+	<key>UIFileSharingEnabled</key>
+	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.leon.NexusFileApp</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>nexusfileapp</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>NexusFileApp needs access to your documents to manage spray programs and agricultural product information for your clients.</string>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<!-- App Store Metadata -->
+	<key>CFBundleDisplayName</key>
+	<string>NexusFileApp</string>
+	<key>CFBundleName</key>
+	<string>NexusFileApp</string>
+	<key>CFBundleVersion</key>
+	<string>1.0.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.leon.NexusFileApp</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+	</array>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-processing</string>
+		<string>background-fetch</string>
+	</array>
+	<!-- Privacy Descriptions -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>NexusFileApp needs access to your photo library to import images for your agricultural documents.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>NexusFileApp needs camera access to capture photos of product labels and field conditions.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>NexusFileApp needs microphone access to record voice notes for your spray programs.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>NexusFileApp uses location to tag spray programs with field locations for better organization.</string>
+	<!-- App Store Optimization -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>mailto</string>
+		<string>tel</string>
+		<string>sms</string>
+	</array>
 </dict>
 </plist>
